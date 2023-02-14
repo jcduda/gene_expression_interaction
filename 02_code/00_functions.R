@@ -593,21 +593,6 @@ scheme_model <- function(y1, y2, y3, y4, v = 0.1, caption1, caption2, l1, l2, l3
 
 plot_it_3_6 <- function(g, dds, ref, point = T, start, s_arrow  = 2.5, s1 = 4, s2 = 5, sl = 1.3, lim1, lim2, main = T, interac = T){
   
-  # g1 <- "#FEC44F"
-  # g2 <-  "#FE9929"
-  # g3 <- "#EC7014"
-  # g4 <- "#CC4C02"
-  # g5 <- "#993404"
-  # b1 <- "#9ECAE1"
-  # b2 <- "#6BAED6" 
-  # b3 <- "#4292C6" 
-  # b4 <- "#2171B5" 
-  # b5 <- "#08519C"
-  # b0 <- "yellowgreen"
-  # a <- "gray25"
-  # l1 <- "gray56"
-  #   l2 <- "antiquewhite3"# "lightcyan3"
-      
 
     # data.frame of log2 counts
     log_count <- data.frame(y = log2(counts(dds, normalize = T)[g,]), 
@@ -793,23 +778,6 @@ plot_it_3_6 <- function(g, dds, ref, point = T, start, s_arrow  = 2.5, s1 = 4, s
 plot_it_3_6_mod1 <- function(g, week3 = dds_obj_mod1[[1]], week6 = dds_obj_mod1[[2]], 
                              dds = gse_ia,  ref, point = T, start, s_arrow  = 2.5, s1 = 4, s2 = 5,
                              sl = 1.3, lim1, lim2, main3 = T, main6 = T, number){
-  
-  #browser()
-
-  # g1 <- "#FEC44F"
-  # g2 <-  "#FE9929"
-  # g3 <- "#EC7014"
-  # g4 <- "#CC4C02"
-  # g5 <- "#993404"
-  # b1 <- "#9ECAE1"
-  # b2 <- "#6BAED6" 
-  # b3 <- "#4292C6" 
-  # b4 <- "#2171B5" 
-  # b5 <- "#08519C"
-  # b0 <- "yellowgreen"
-  # a <- "gray25"
-  # l1 <- "gray56"
-  # l2 <- "antiquewhite3"# "lightcyan3"
   
   
   # data.frame of log2 counts
