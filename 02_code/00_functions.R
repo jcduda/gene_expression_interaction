@@ -2,11 +2,11 @@
 ############################# Build object #####################################
 ################################################################################
 ## deseq_obj: 
-#     function that builds the dds object for the different model
+#     function that builds the dds object for the different model with 
 #     prefiltering, differential expression analysis
 ## input: 
 #     gse: object Large RangedSummarizedExperiment
-#     model:  1 or 2; corresponding to the model of interest
+#     model:  1 or 2; corresponding to the method of interest
 #     threshold of rowsums: numerical; minimum number if counts per genes overall
 #     filter: filter out genes with zero counts for more than 50% of the samples
 ## output: 
@@ -31,12 +31,12 @@ deseq_obj <- function(gse, model, threshold = 10, filter = T){
 ################################################################################
 ############################## Method I ########################################
 ################################################################################
-# function to obtain de gens for Method I 
+# function to obtain differentially expressed gens for Method I 
 #
 # deg: function that returns differentially expressed genes, separated by
 #           up and down regulated genes
 # input: dds = dds object
-#        name = resultsNames(dds)
+#        name = coefficient of interest, (resultsNames(dds))
 #        pthreshold = pvalue threshold for filtering
 #        log2threshold = log2foldchange threshold for filtering
 #        shrinkage = T (default) or F, if shrinkage should be done or not
@@ -61,49 +61,23 @@ de_mod1 <- function(dds, name, pthreshold = 0.05, log2threshold = log2(1.5),
   return(list(up = res_up, down = res_down))
 }
 
-# de_mod1.1 <- function(dds, name, pthreshold = 0.05, log2threshold = log2(1.5),
-#                     shrinkage = T){
-#   
-#   if(shrinkage){
-#     res <- lfcShrink(dds, coef = name, type = "apeglm")
-#   } else {
-#     res <- results(dds, name = name)
-#   }
-#   
-#   return(res)
-# }
-
 ################################################################################
-## gene_names: function to assign the gene names faster
-##
-## input: list of genes
-## 
-## output: gene names of list
+# gene_names: function to assign the gene names faster
+#
+# input: list of genes
+# 
+# output: gene names of list
 
 
 gene_names <- function(liste){
   gene_names <- lapply(liste, rownames)
   return(gene_names)
 }
-################################################################################
-## venn_diagram: function that plots a venn diagramm of deg that are in one
-##               week or the other
-## input: gene = list of gene names
-## output: venn diagram
 
-venn_diagram <- function(gene, version, add_title = ""){
-    gene_names <- gene[c(1,2)]
-    g1 <- ggVennDiagram(gene_names, edge_size = 0)+
-      scale_fill_gradient(low = "paleturquoise3", high =  "paleturquoise4")+
-      theme(legend.position = "none",
-            text = element_text(size = 20)) 
-    print(g1+
-            ggtitle(paste(add_title)))
-}
 ################################################################################
-############################## Why prefiltering ################################
+############################## Why filtering ###################################
 ################################################################################
-# function for pre-filtering 
+# function for filtering 
 # plots a histogram for the values of the coefficient of interest
 # input:
 #     gse: output from deseq_obj
@@ -126,7 +100,6 @@ plot_hist <- function(gse, variable){
           theme_classic()+
           ylim(c(0,700))+
           theme(text = element_text(size = 20))+
-          #facet_wrap(~ variable) +
           theme_classic()+ 
           theme(axis.text.x = element_text(size = 13))+
           theme(axis.text.y = element_text(size = 13))+
@@ -136,45 +109,9 @@ plot_hist <- function(gse, variable){
   
 }
 ################################################################################
-# this functions plots a histogram and colors the fraction of genes with more than 
-# "cutpoint" percent of zero counts
-
-# input: 
-#     gse: output from deseq_obj
-#     cutpoint: percent of zerocount to use as cutpoint for coloring 
-#     col_var: number of columns for the variable (e.g. 2 is diet HFD vs SD)
-# output: 
-#     histogram
-
-
-plot_cutpoint <- function(gse, cutpoint, col_var){
-  
-  # model estimation diet HFD vs SD of value for each gene
-  coefs <- coef(gse)[,col_var]
-  
-  # proportion of 0's for each gene
-  prop <- apply(counts(gse) == 0, 1, sum)/ncol(counts(gse[1]))
-  prop_cut <- ifelse(prop > cutpoint, paste(">", cutpoint), paste("<=", cutpoint))
-  
-  # df
-  df <- data.frame(coef = round(coefs,2),
-                   proportion = prop,
-                   cutpoint = factor(prop_cut, 
-                                     levels = c(paste(">", cutpoint), paste("<=", cutpoint))))
-  
-  print(ggplot(data = df, aes(x=coefs, fill = cutpoint))+ 
-          geom_histogram(bins = 500, position = "stack")+
-          xlim(c(-3,3))+
-          xlab(paste(colnames(coef(gse))[col_var]))+
-          ggtitle(paste("Proportion of 0 Counts, Cutpoint = ", cutpoint))+
-          theme_minimal()
-  )
-}
-
-################################################################################
 ############################## Method II #######################################
 ################################################################################
-# function to obtain de gens for method ii
+# function to obtain differentially expressed gens for method ii
 
 # input:
 # x: name of the contrast of interest
@@ -225,7 +162,7 @@ de_mod2 <- function(x, dds, p_val = 0.05, thresholdfold = log2(1.5)){
 plot_it <- function(g, dds, ref, point = T, start, s_arrow  = 1.1, s1 = 3, s2 = 4, sl = 1.3){
 
   g1 <- "#FEC44F"
-  g2 <-  "#FE9929"
+  g2 <- "#FE9929"
   g3 <- "#EC7014"
   g4 <- "#CC4C02"
   g5 <- "#993404"
@@ -235,9 +172,9 @@ plot_it <- function(g, dds, ref, point = T, start, s_arrow  = 1.1, s1 = 3, s2 = 
   b4 <- "#2171B5" 
   b5 <- "#08519C"
   b0 <- "yellowgreen"
-  a <- "gray25"
+  a  <- "gray25"
   l1 <- "gray56"
-  l2 <- "antiquewhite3"# "lightcyan3"
+  l2 <- "antiquewhite3"
                               
   
   # data.frame of log2 counts
@@ -256,13 +193,13 @@ plot_it <- function(g, dds, ref, point = T, start, s_arrow  = 1.1, s1 = 3, s2 = 
   mean_data <- data.frame(x = rep(unique(log_count$x), each = 2),
                           meanCount = sapply(unique(log_count$index), 
                                              function(i)
-                                               log2(mean(2^log_count[log_count$index == i,]$y))), #mean(log_count[log_count$index == i,]$y)), 
+                                               log2(mean(2^log_count[log_count$index == i,]$y))), 
                           diet = as.factor(rep(c("WD", "SD"), 6)))
                      
   
   
   
-   # combinind all data in one data.frame
+   # combine all data in one data.frame
   all_data <- data.frame(x = c(log_count$x, mean_data$x),
                          y = c(log_count$y, mean_data$meanCount), 
                          diet = c(log_count$diet, mean_data$diet), 
@@ -331,10 +268,6 @@ plot_it <- function(g, dds, ref, point = T, start, s_arrow  = 1.1, s1 = 3, s2 = 
                           yend = df[7:12, 2], 
                           y = df[1:6,2])
   
-  
-  
-  
-  
   ggplot(df, aes(x = x, y = y)) + 
     theme_classic() + 
     scale_color_manual(values = c(l1, l2))+
@@ -383,8 +316,6 @@ plot_it <- function(g, dds, ref, point = T, start, s_arrow  = 1.1, s1 = 3, s2 = 
     
     labs(x = "weeks", y = "log2(normalized count)") + 
     scale_x_continuous(limits = c(0, 53), breaks = seq(0, 50, by = 5))+
-    
-    #theme(plot.title = element_text(size = 25,face="bold", hjust = 0.5 )) +
     theme(axis.text.x = element_text(size = 15))+
     theme(axis.text.y = element_text(size = 15))+
     theme(axis.title.x = element_text(size = 16)) + 
@@ -394,8 +325,7 @@ plot_it <- function(g, dds, ref, point = T, start, s_arrow  = 1.1, s1 = 3, s2 = 
     guides(colour = guide_legend(override.aes = list(size = 2))) +
     theme(legend.title = element_text(colour="black", size = 15, 
                                       face="bold"))+
-    #theme(plot.background=element_rect(color="black")) +
-    theme(legend.text = element_text(colour="black", size = 15))#,
+    theme(legend.text = element_text(colour="black", size = 15))
 }
 
 ################################################################################
@@ -404,6 +334,7 @@ plot_it <- function(g, dds, ref, point = T, start, s_arrow  = 1.1, s1 = 3, s2 = 
 # input:
 #   df: data frame contatining one column for x values, one for y values, and one for color
 #   plot_title: title for the plot
+# output: plot
 
 scheme_interaction_plot <- function(df, plot_title){
   ggplot(df, aes(x = x, y = y, col = col)) + 
@@ -411,18 +342,14 @@ scheme_interaction_plot <- function(df, plot_title){
     geom_line(aes( x = x, y = y, colour = col),  size = 1.5)+
     theme_classic()+
     scale_color_manual("", breaks = c("Group 0","Group 1"), values = c( "blue","red"))+
-    #theme(plot.title = element_text(size = 25,face="bold", hjust = 0.5 )) +
     theme(axis.text.x = element_text(size = 22))+
-    #theme(axis.text.y = element_text(size = 22))+
     theme(axis.text.y = element_blank(),axis.ticks.y=element_blank())+
     theme(axis.title.x = element_text(size = 24)) +
     theme(legend.key.size = unit(3, "cm"), legend.text = element_text(size=20))+
     theme(axis.title.y = element_text(size = 24))+
-    #ggtitle("(5, 0.7, 0)") + 
     ggtitle(plot_title) +
     ylab("")+
     scale_x_discrete(limits = c("low", "high"), name = "")+ 
-    #scale_y_continuous(breaks=c(0.2, 0.7, 0.9, 1.4)*10, name = "")+
     theme(plot.title = element_text(size = 25))
 }
 ################################################################################
@@ -551,8 +478,7 @@ scheme_model <- function(y1, y2, y3, y4, v = 0.1, caption1, caption2, l1, l2, l3
       theme(plot.caption = element_text(color = "seagreen", size = 12, face = "bold"))}  
       else{
         theme(plot.caption = element_text(color = "red3", size = 12, face = "bold"))} }+
-    
-    
+
     labs(caption = caption2) +
     theme(plot.caption=element_text(size=20))+
     theme(legend.title=element_blank(), legend.text=element_text(size=20)) +
@@ -689,15 +615,11 @@ plot_it_3_6 <- function(g, dds, ref, point = T, start, s_arrow  = 2.5, s1 = 4, s
       geom_segment(data = df_week, aes(x = x - x1, xend = xend - x1, y = y,
                                        yend = yend), 
                    arrow = arrow(length = unit(0.2, "cm")), 
-                   col = "azure4", size = s_arrow) + #c(b1)
-      
-      
-      
-      
+                   col = "azure4", size = s_arrow) + 
       
       # arrow hfd effect
       geom_segment(data = df_hfd_ef, aes(x = x - x2, xend = xend - x2, y = y, yend = yend), 
-                   arrow = arrow(length = unit(0.2, "cm")), col = "dodgerblue3",#a
+                   arrow = arrow(length = unit(0.2, "cm")), col = "dodgerblue3",
                    size = s_arrow) + 
       
       # if  effect < log2(1.5) line is dotted
@@ -706,12 +628,11 @@ plot_it_3_6 <- function(g, dds, ref, point = T, start, s_arrow  = 2.5, s1 = 4, s
                      col = "white", size = s_arrow, linetype = 9, alpha = 0.8)
       }}+
       
-      
       # hfd with interaction
       geom_segment(data = df_int_arrow, aes(x = x - x3, xend = xend - x3, y = y,
                                             yend = yend), 
                    arrow = arrow(length = unit(0.2, "cm")),
-                   col = "orchid3", size = s_arrow) + #c(g1)
+                   col = "orchid3", size = s_arrow) + 
       
       # if  effect < log2(1.5) line is dotted
       {if(interac != T){
@@ -722,13 +643,11 @@ plot_it_3_6 <- function(g, dds, ref, point = T, start, s_arrow  = 2.5, s1 = 4, s
       
       # dashed horizontal line for week effect starting point
       geom_segment(aes(x = 3 -x1, xend = 6 -x1, y = coef(dds)[g,1], yend = coef(dds)[g,1]), col = "grey",  linetype = "dashed")+
-      
-      #labs(x = "weeks") + 
+
       labs(x = "", y = "")+
       scale_x_continuous(limits = c(1.5, 6.5), breaks = c(3, 6))+
       scale_y_continuous(limits = c(lim1, lim2))+
       ggtitle("")+
-      #theme(plot.title = element_text(size = 25,face="bold", hjust = 0.5 )) +
       theme(axis.text.x = element_text(size = 15))+
       theme(axis.text.y = element_text(size = 15))+
       theme(axis.title.x = element_text(size = 16)) + 
@@ -740,12 +659,10 @@ plot_it_3_6 <- function(g, dds, ref, point = T, start, s_arrow  = 2.5, s1 = 4, s
                                         face="bold"))+
       theme(plot.background=element_rect(color="black"))+
       theme(legend.position="none")+
-      theme(legend.text = element_text(colour="black", size = 15))#, 
-    #face="bold"))
+      theme(legend.text = element_text(colour="black", size = 15))
 }
 
 ################################################################################
-#@ caro aufräumen
 # plot for model 3 only week 3 and 6
 
 # function plots model for one gene g,
@@ -753,7 +670,7 @@ plot_it_3_6 <- function(g, dds, ref, point = T, start, s_arrow  = 2.5, s1 = 4, s
 # points display the observed counts
 
 # input:
-# dds: DESeqDataSet object (from interaction model because I was too lazy to change it to model 1)
+# dds: DESeqDataSet object from method ii
 # week3: DESeqDataSet object for week 3 model 1
 # week6: DESeqDataSet object for week 6 model 1
 # g: natural number between 1 and number of rows of DESeqData Set
@@ -766,8 +683,8 @@ plot_it_3_6 <- function(g, dds, ref, point = T, start, s_arrow  = 2.5, s1 = 4, s
 # sl : size line 
 # lim1: lower limit for y axis
 # lim2: upper limit for y axis
-# main3: true false, if main effect in week3 is bigger log2(1.5) -> gestrichelt
-# main6: true false, if main effect in week 6 is bigger log2(1.5) -> gestrichelt
+# main3: true false, if main effect in week3 is bigger log2(1.5) -> dotted
+# main6: true false, if main effect in week 6 is bigger log2(1.5) -> dotted
 
 
 
@@ -776,9 +693,8 @@ plot_it_3_6 <- function(g, dds, ref, point = T, start, s_arrow  = 2.5, s1 = 4, s
 
 
 plot_it_3_6_mod1 <- function(g, week3 = dds_obj_mod1[[1]], week6 = dds_obj_mod1[[2]], 
-                             dds = gse_ia,  ref, point = T, start, s_arrow  = 2.5, s1 = 4, s2 = 5,
+                             dds, ref, point = T, start, s_arrow  = 2.5, s1 = 4, s2 = 5,
                              sl = 1.3, lim1, lim2, main3 = T, main6 = T, number){
-  
   
   # data.frame of log2 counts
   log_count <- data.frame(y = c(log2(counts(week3, normalize = T)[g,]), 
@@ -793,12 +709,10 @@ plot_it_3_6_mod1 <- function(g, week3 = dds_obj_mod1[[1]], week6 = dds_obj_mod1[
                                                    names(counts(week6)[g,])))))
   
   
-  
   # change level HFD to WD
   levels(log_count$diet)[levels(log_count$diet) == "HFD"] = "WD"
   # create column for plotting containing week and diet together
   log_count$index <- paste0(log_count$x, log_count$diet)
-  
   
   # mean log2 count for each time point per diet
   mean_data <- data.frame(x = rep(unique(log_count$x), each = 2),
@@ -807,7 +721,7 @@ plot_it_3_6_mod1 <- function(g, week3 = dds_obj_mod1[[1]], week6 = dds_obj_mod1[
                                                log2( mean(2^log_count[log_count$index == i,]$y))), 
                           diet = as.factor(rep(c("WD", "SD"), 2)))
   
-  # combinind all data in one data.frame
+  # combine all data in one data.frame
   all_data <- data.frame(x = c(log_count$x, mean_data$x),
                          y = c(log_count$y, mean_data$meanCount), 
                          diet = c(log_count$diet, mean_data$diet), 
@@ -833,7 +747,7 @@ plot_it_3_6_mod1 <- function(g, week3 = dds_obj_mod1[[1]], week6 = dds_obj_mod1[
   ggplot(all_data, aes(x = x, y = y)) + 
     theme_classic() + 
     # plot observations:
-     geom_jitter(data = all_data[all_data$count != "mean",], 
+    geom_jitter(data = all_data[all_data$count != "mean",], 
                 aes(x = x, y = y, col = diet, shape = count),
                 alpha = c(rep(0.75, nrow(log_count))),
                 shape = c(rep(16, nrow(log_count))), 
@@ -847,39 +761,39 @@ plot_it_3_6_mod1 <- function(g, week3 = dds_obj_mod1[[1]], week6 = dds_obj_mod1[
                 size = rep(s2, nrow(mean_data)), 
                 width = 0.001, height =0) + 
     
-
+    
     # arrow for intercept week 3, if: intercept <= 0, else > 0
     {if(coef(week3)[g,1] <= 0){
       geom_segment(aes(x = 3 - x2, y = 0, xend = 3 - x2,
                        yend = coef(week3)[g,1]), 
-                   arrow = arrow(length = unit(0.2, "cm")), col = "black", #b0
+                   arrow = arrow(length = unit(0.2, "cm")), col = "black", 
                    size = s_arrow) }
       else{
         geom_segment(aes(x = 3 - x2, y = start,
                          xend = 3 - x2,
                          yend = coef(week3)[g,1]), 
-                     arrow = arrow(length = unit(0.2, "cm")), alpha = 0.8,  col = "black", #b0
+                     arrow = arrow(length = unit(0.2, "cm")), alpha = 0.8,  col = "black", 
                      size = s_arrow)}}+
     # arrow for intercept week 6, if: intercept <= 0, else > 0
     {if(coef(week6)[g,1] <= 0){
       geom_segment(aes(x = 6 - x2, y = 0, xend = 6 - x2,
                        yend = coef(week6)[g,1]), 
-                   arrow = arrow(length = unit(0.2, "cm")), col = "black", #b0
+                   arrow = arrow(length = unit(0.2, "cm")), col = "black", 
                    size = s_arrow) }
       else{
         geom_segment(aes(x = 6 - x2, y = start,
                          xend = 6 - x2,
                          yend = coef(week6)[g,1]), 
-                     arrow = arrow(length = unit(0.2, "cm")), col = "black", #b0
+                     arrow = arrow(length = unit(0.2, "cm")), col = "black", 
                      size = s_arrow, alpha = 0.8)}}+
     
     
     # arrow hfd effect
     geom_segment(data = df_hfd_ef, aes(x = x - x3, xend = xend - x3, y = y, yend = yend), 
-                 arrow = arrow(length = unit(0.2, "cm")), col =  "darkgreen",#a
+                 arrow = arrow(length = unit(0.2, "cm")), col =  "darkgreen",
                  size = s_arrow) + 
     
-    # when effect abs < log2(1.5) -> dottet
+    # when effect abs < log2(1.5) -> dotted
     {if(main3 != T){
       geom_segment(data = df_hfd_ef[df_hfd_ef$x == 3, ], 
                    aes(x = x - x3, xend = xend - x3, y = y,
@@ -887,7 +801,7 @@ plot_it_3_6_mod1 <- function(g, week3 = dds_obj_mod1[[1]], week6 = dds_obj_mod1[
                    col = "white", size = s_arrow, linetype = 9, alpha = 0.8)
     }}+
     
-    # when effect abs < log2(1.5) -> dottet
+    # when effect abs < log2(1.5) -> dotted
     {if(main6 != T){
       geom_segment(data = df_hfd_ef[df_hfd_ef$x == 6, ], 
                    aes(x = x - x3, xend = xend - x3, y = y, yend = yend - main6), 
@@ -899,7 +813,7 @@ plot_it_3_6_mod1 <- function(g, week3 = dds_obj_mod1[[1]], week6 = dds_obj_mod1[
     scale_x_continuous(limits = c(2, 7), breaks = c(3, 6))+
     scale_y_continuous(limits = c(lim1, lim2))+
     ggtitle(number)+ 
-  theme(axis.text.x = element_text(size = 15))+
+    theme(axis.text.x = element_text(size = 15))+
     theme(axis.text.y = element_text(size = 15),
           plot.title =   element_text(size = 18))+
     theme(axis.title.x = element_text(size = 16)) + 
@@ -949,135 +863,135 @@ plot_no_int <- function(g, dds, ref, point = T, start, s_arrow  = 1.1, s1 = 3, s
   l1 <- "gray56"
   l2 <- "antiquewhite3"
       
-    # data.frame of log2 counts
-    log_count <- data.frame(y = log2(counts(dds, normalize = T)[g,]), 
-                            x = as.numeric(sub("w.*", "", 
-                                               names(counts(dds)[g,]))),
-                            diet =  as.factor(gsub(".*w-(.+)-M.*", "\\1",
-                                                   names(counts(dds)[g,]))))
-    
-    # change level HFD to WD
-    levels(log_count$diet)[levels(log_count$diet) == "HFD"] = "WD"
-    # create column for plotting containing week and diet together
-    log_count$index <- paste0(log_count$x, log_count$diet)
-    
-    # mean log2 count for each time point per diet
-    mean_data <- data.frame(x = rep(unique(log_count$x), each = 2),
-                            meanCount = sapply(unique(log_count$index), 
-                                               function(i)
-                                                 log2(mean(2^log_count[log_count$index == i,]$y))), 
-                            diet = as.factor(rep(c("WD", "SD"), 6)))
-    
+  # data.frame of log2 counts
+  log_count <- data.frame(y = log2(counts(dds, normalize = T)[g,]), 
+                          x = as.numeric(sub("w.*", "", 
+                                             names(counts(dds)[g,]))),
+                          diet =  as.factor(gsub(".*w-(.+)-M.*", "\\1",
+                                                 names(counts(dds)[g,]))))
   
+  # change level HFD to WD
+  levels(log_count$diet)[levels(log_count$diet) == "HFD"] = "WD"
+  # create column for plotting containing week and diet together
+  log_count$index <- paste0(log_count$x, log_count$diet)
+  
+  # mean log2 count for each time point per diet
+  mean_data <- data.frame(x = rep(unique(log_count$x), each = 2),
+                          meanCount = sapply(unique(log_count$index), 
+                                             function(i)
+                                               log2(mean(2^log_count[log_count$index == i,]$y))), 
+                          diet = as.factor(rep(c("WD", "SD"), 6)))
+  
+  
+  
+  # combine all data in one data.frame
+  all_data <- data.frame(x = c(log_count$x, mean_data$x),
+                         y = c(log_count$y, mean_data$meanCount), 
+                         diet = c(log_count$diet, mean_data$diet), 
+                         count = as.factor(
+                           c(rep("observed", nrow(log_count)), 
+                             rep("mean", nrow(mean_data)))))
+  
+  all_data$count <- factor(all_data$count, levels = c("observed", "mean"))
+  
+  # data.frame containing the values for start and end points of the arrows
+  df <- data.frame(
+    # weeks with reference week in first position (x-axis values):
+    x = rep(c(ref, 
+              c(3, 6, 30, 36, 42, 48)[- which(c(3, 6, 30, 36, 42, 48) == ref)]),
+            2),
     
-    # combinind all data in one data.frame
-    all_data <- data.frame(x = c(log_count$x, mean_data$x),
-                           y = c(log_count$y, mean_data$meanCount), 
-                           diet = c(log_count$diet, mean_data$diet), 
-                           count = as.factor(
-                             c(rep("observed", nrow(log_count)), 
-                               rep("mean", nrow(mean_data)))))
     
-    all_data$count <- factor(all_data$count, levels = c("observed", "mean"))
-    
-    # data.frame containing the values for start and end points of the arrows
-    df <- data.frame(
-      # weeks with reference week in first position (x-axis values):
-      x = rep(c(ref, 
-                c(3, 6, 30, 36, 42, 48)[- which(c(3, 6, 30, 36, 42, 48) == ref)]),
-              2),
+    # response (y-axis): 
+    y = c( 
+      # diet sd for all weeks (for all but the reference week add 
+      # intercept): 
+      coef(dds)[g,1], 
+      sapply(3:7, function(x) coef(dds)[g, x] + coef(dds)[g,1]),
       
-      
-      # response (y-axis): 
-      y = c( 
-        # diet sd for all weeks (for all but the reference week add 
-        # intercept): 
-        coef(dds)[g,1], 
-        sapply(3:7, function(x) coef(dds)[g, x] + coef(dds)[g,1]),
-        
-        # intercept and standarddiet + effect of WD
-        coef(dds)[g,1] + coef(dds)[g,2], 
-        sapply(3:7, function(x) coef(dds)[g,x] + coef(dds)[g,2] + coef(dds)[g,1])
-      ), 
-      
-      # level for colors
-      diet = as.factor(c(rep("SD", 6),  
-                         rep("WD", 6)))
-    )
+      # intercept and standarddiet + effect of WD
+      coef(dds)[g,1] + coef(dds)[g,2], 
+      sapply(3:7, function(x) coef(dds)[g,x] + coef(dds)[g,2] + coef(dds)[g,1])
+    ), 
     
+    # level for colors
+    diet = as.factor(c(rep("SD", 6),  
+                       rep("WD", 6)))
+  )
+  
+  
+  
+  #data.frame for the week effect arrows
+  df_week <- data.frame(x = c(3, 6, 30, 36, 42, 48)[- which(c(3, 6, 30, 36, 42,
+                                                              48) == ref)],
+                        xend = c(3, 6, 30, 36, 42, 
+                                 48)[- which(c(3, 6, 30, 36, 42, 48) == ref)],
+                        yend = df[2:6, 2], 
+                        y = rep(coef(dds)[g, 1], 5))
+  
+  
+  # main effect arrows
+  df_hfd_ef <- data.frame(x = c(ref, c(3, 6, 30, 36, 42, 
+                                       48)[- which(c(3, 6, 30, 36, 42, 48) == ref)]),
+                          xend = c(ref, c(3, 6, 30, 36, 42, 
+                                          48)[- which(c(3, 6, 30, 36, 42, 48) == ref)]),
+                          yend = df[7:12, 2], 
+                          y = df[1:6,2])
+  
+  
+  
+  ggplot(df, aes(x = x, y = y)) + 
+    theme_classic() + 
+    scale_color_manual(values = c(l1, l2))+
+    # lines for sd and WD
+    geom_line(data = df, aes(x = x, y = y, col = diet), size = sl) + 
+    # plot observations:
+    {if(point == T){
+      geom_jitter(data = all_data, aes(x = x, y = y, col = diet, shape = count),
+                  alpha = c(rep(1, nrow(log_count)), rep(1, nrow(mean_data))),
+                  size = c(rep(s1, nrow(log_count)), rep(s2, nrow(mean_data))), 
+                  width = 0.4)
+    }}+
     
-    
-    #data.frame for the week effect arrows
-    df_week <- data.frame(x = c(3, 6, 30, 36, 42, 48)[- which(c(3, 6, 30, 36, 42,
-                                                                48) == ref)],
-                          xend = c(3, 6, 30, 36, 42, 
-                                   48)[- which(c(3, 6, 30, 36, 42, 48) == ref)],
-                          yend = df[2:6, 2], 
-                          y = rep(coef(dds)[g, 1], 5))
-    
-    
-    # main effect arrows
-    df_hfd_ef <- data.frame(x = c(ref, c(3, 6, 30, 36, 42, 
-                                         48)[- which(c(3, 6, 30, 36, 42, 48) == ref)]),
-                            xend = c(ref, c(3, 6, 30, 36, 42, 
-                                            48)[- which(c(3, 6, 30, 36, 42, 48) == ref)]),
-                            yend = df[7:12, 2], 
-                            y = df[1:6,2])
-    
-    
-    
-    ggplot(df, aes(x = x, y = y)) + 
-      theme_classic() + 
-      scale_color_manual(values = c(l1, l2))+
-      # lines for sd and WD
-      geom_line(data = df, aes(x = x, y = y, col = diet), size = sl) + 
-      # plot observations:
-      {if(point == T){
-        geom_jitter(data = all_data, aes(x = x, y = y, col = diet, shape = count),
-                    alpha = c(rep(1, nrow(log_count)), rep(1, nrow(mean_data))),
-                    size = c(rep(s1, nrow(log_count)), rep(s2, nrow(mean_data))), 
-                    width = 0.4)
-      }}+
-      
-      # arrow for intercept
-      {if(coef(dds)[g,1] <= 0){
-        geom_segment(aes(x = ref + 0.6, y = 0, xend = ref + 0.6,
+    # arrow for intercept
+    {if(coef(dds)[g,1] <= 0){
+      geom_segment(aes(x = ref + 0.6, y = 0, xend = ref + 0.6,
+                       yend = coef(dds)[g,1]), 
+                   arrow = arrow(length = unit(0.2, "cm")), col = b0, 
+                   size = s_arrow)}
+      else{
+        geom_segment(aes(x = ref + 0.6, y = floor(min(log_count$y)- 0.1),
+                         xend = ref + 0.6,
                          yend = coef(dds)[g,1]), 
                      arrow = arrow(length = unit(0.2, "cm")), col = b0, 
-                     size = s_arrow)}
-        else{
-          geom_segment(aes(x = ref + 0.6, y = floor(min(log_count$y)- 0.1),
-                           xend = ref + 0.6,
-                           yend = coef(dds)[g,1]), 
-                       arrow = arrow(length = unit(0.2, "cm")), col = b0, 
-                       size = s_arrow)}}+
-      
-      # arrow for week effect
-      geom_segment(data = df_week, aes(x = x - 0.7, xend = xend - 0.7, y = y,
-                                       yend = yend), 
-                   arrow = arrow(length = unit(0.2, "cm")), 
-                   col = c(b1, b2, b3  ,b4, b5), size = s_arrow) + 
-      
-      
-      # arrow WD effect
-      geom_segment(data = df_hfd_ef, aes(x = x, xend = xend, y = y, yend = yend), 
-                   arrow = arrow(length = unit(0.2, "cm")), col = a,
-                   size = s_arrow) + 
-      
-      
-      
-      labs(x = "weeks", y = "log2(normalized count)") + 
-      scale_x_continuous(limits = c(0, 53), breaks = seq(0, 50, by = 5))+
-      
-      theme(axis.text.x = element_text(size = 15))+
-      theme(axis.text.y = element_text(size = 15))+
-      theme(axis.title.x = element_text(size = 16)) + 
-      theme(axis.title.y = element_text(size = 16))+ 
-      theme(legend.position="bottom")+
-      guides(shape = guide_legend(override.aes = list(size = 3))) +
-      guides(colour = guide_legend(override.aes = list(size = 2))) +
-      theme(legend.title = element_text(colour="black", size = 15, 
-                                        face="bold"))+
-      theme(legend.text = element_text(colour="black", size = 15))
+                     size = s_arrow)}}+
+    
+    # arrow for week effect
+    geom_segment(data = df_week, aes(x = x - 0.7, xend = xend - 0.7, y = y,
+                                     yend = yend), 
+                 arrow = arrow(length = unit(0.2, "cm")), 
+                 col = c(b1, b2, b3  ,b4, b5), size = s_arrow) + 
+    
+    
+    # arrow WD effect
+    geom_segment(data = df_hfd_ef, aes(x = x, xend = xend, y = y, yend = yend), 
+                 arrow = arrow(length = unit(0.2, "cm")), col = a,
+                 size = s_arrow) + 
+    
+    
+    
+    labs(x = "weeks", y = "log2(normalized count)") + 
+    scale_x_continuous(limits = c(0, 53), breaks = seq(0, 50, by = 5))+
+    
+    theme(axis.text.x = element_text(size = 15))+
+    theme(axis.text.y = element_text(size = 15))+
+    theme(axis.title.x = element_text(size = 16)) + 
+    theme(axis.title.y = element_text(size = 16))+ 
+    theme(legend.position="bottom")+
+    guides(shape = guide_legend(override.aes = list(size = 3))) +
+    guides(colour = guide_legend(override.aes = list(size = 2))) +
+    theme(legend.title = element_text(colour="black", size = 15, 
+                                      face="bold"))+
+    theme(legend.text = element_text(colour="black", size = 15))
 }
 
