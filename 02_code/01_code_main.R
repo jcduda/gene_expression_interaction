@@ -12,6 +12,8 @@
 
 library(ggplot2)
 library(ggpubr)
+library(DESeq2)
+library(MASS)
 
 source("../02_Code/00_functions.R")
 
@@ -521,7 +523,7 @@ ggplot(df_p, aes(x = main, y = main_inter, col = col)) +
 
 ggsave("../03_figures/02_supplement/fig3_scatter_annotated_W_p_shrink.eps", width = 25, height = 15, unit = "cm", 
        device = cairo_ps) 
-ggsave("../03_figures/02_supplement/fig3_scatter_annotated_W_p_shrink.jpeg", width = 50, height = 30, unit = "cm") 
+ggsave("../03_figures/02_supplement/fig3_scatter_annotated_W_p_shrink.jpeg", width = 25, height = 15, unit = "cm") 
 
 
 
