@@ -1141,7 +1141,7 @@ dot_plot <- function(dfgene, n, add_title=""){
           theme_minimal()+
           ylab("")+
           # theme(text = element_text(size = 28))  +
-          theme(panel.border = element_rect(colour = "black", fill=NA, size=1)) +
+          theme(panel.border = element_rect(colour = "black", fill=NA, linewidth = 1)) +
           theme(text = element_text(size = 26, color = "black"),
                 title = element_text(size = 20),
                 plot.title = element_text(hjust = 1),

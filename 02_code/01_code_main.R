@@ -396,24 +396,24 @@ if(file.exists("051_GO_res.RData")){
 } else {
   set.seed(1234)
   GO_method1_up <- topGO_analysis(interesting = deg_mod_1_up, all_genes = rownames(dds_method1),
-                                  methods = "elim", topNodes = 1000)
+                                  methods = "classic", topNodes = 1000)
 
   # Genes that are DEG by Method II and have a positive log2FC
   # Note: res_mod2 already fitlered by log2FC and adj. p-value
   deg_mod2_up <- rownames(res_mod2)[res_mod2$log2FoldChange > 0]
   GO_method2_up <- topGO_analysis(interesting = deg_mod2_up, all_genes = rownames(dds_method2),
-                                  methods = "elim", topNodes = 1000)
+                                  methods = "classic", topNodes = 1000)
 
   # GO analysis on genes that are found by Method I, Method II or both (up-regulated)
   GO_method1_or2_up <- topGO_analysis(interesting = unique(c(deg_mod_1_up, deg_mod2_up)),
                                       all_genes = unique(c(rownames(dds_method1), rownames(dds_method2))),
-                                      methods = "elim", topNodes = 1000)
+                                      methods = "classic", topNodes = 1000)
 
   # GO analysis on genes that are upregulated and only found by Method II
   GO_only_method2_up <- topGO_analysis(interesting = setdiff(deg_mod2_up, deg_mod_1_up), all_genes = rownames(dds_method2),
-                                  methods = "elim", topNodes = 1000)
+                                  methods = "classic", topNodes = 1000)
   GO_only_method1_up <- topGO_analysis(interesting = setdiff(deg_mod_1_up, deg_mod2_up), all_genes = rownames(dds_method2),
-                                       methods = "elim", topNodes = 1000)
+                                       methods = "classic", topNodes = 1000)
 
   save(GO_method1_up, GO_method2_up, GO_method1_or2_up,
        GO_only_method2_up, GO_only_method1_up, deg_mod2_up,
@@ -433,17 +433,21 @@ ggsave(dot_plot_method1_or_2_up, file = "054_dot_plot_method1_or_2_up.pdf", widt
 ggsave(dot_plot_only_method2_up, file = "055_dot_plot_only_method2_up.pdf", width = 12, height = 6)
 ggsave(dot_plot_only_method1_up, file = "056_dot_plot_only_method1_up.pdf", width = 12, height = 6)
 
-xtable(cbind(GO_method1_up$gen_table[1:15, c("Term", "Fisher.elim_adjust")] %>%
-  mutate('Method I' = paste0(Term, " (", signif(Fisher.elim_adjust, 3),")")) %>%
+xtable(cbind(GO_method1_up$gen_table[1:15, c("Term", "Fisher.classic_adjust")] %>%
+  mutate('Method I' = paste0(Term, " (", signif(Fisher.classic_adjust, 3),")")) %>%
     dplyr::select('Method I'),
 
-GO_method2_up$gen_table[1:15, c("Term", "Fisher.elim_adjust")] %>%
-  mutate('Method II' = paste0(Term, " (", signif(Fisher.elim_adjust, 3),")"))%>%
+GO_method2_up$gen_table[1:15, c("Term", "Fisher.classic_adjust")] %>%
+  mutate('Method II' = paste0(Term, " (", signif(Fisher.classic_adjust, 3),")"))%>%
   dplyr::select('Method II'),
 
-GO_method1_or2_up$gen_table[1:15, c("Term", "Fisher.elim_adjust")] %>%
-  mutate('Method I or II' = paste0(Term, " (", signif(Fisher.elim_adjust, 3),")"))%>%
+GO_method1_or2_up$gen_table[1:15, c("Term", "Fisher.classic_adjust")] %>%
+  mutate('Method I or II' = paste0(Term, " (", signif(Fisher.classic_adjust, 3),")"))%>%
   dplyr::select('Method I or II')))
+
+# p-values from GO Analyses for both mehtods
+
+
 
 
 # Look at up-regulated genes found by Method II only ---------------------------
