@@ -1023,7 +1023,7 @@ topGOdataObj <- function(interesting.genes, gene.names = gene_id_all, node.size 
 # input:
 #   intersting: name of interesting genes
 #   all_genes: name of all genes
-#   metho: method used for the runTest funtion
+#   methods: method used for the runTest funtion
 #   topNodes: natural number, how many Nodes are of interest
 
 
@@ -1039,27 +1039,43 @@ topGO_analysis <- function(interesting, all_genes, methods = "elim", topNodes = 
                           gene.names = all_genes)
 
   # apply method to topGo Object
-  res <- sapply("elim",
+  res <- sapply(methods,
                 function(x) runTest(go_data, algorithm = x, statistic = "fisher"))
 
   # res$weight.log <- runTest(GOdata, algorithm = "weight", statistic = "fisher", sigRatio = "log")
   # res$parentchild.intersect <- runTest(GOdata, algorithm = "parentchild", statistic = "fisher", joinFun = "intersect")
-
-  res$gen_table <- GenTable(go_data,
-                            Fisher.elim = res$elim,
-                            orderBy = "Fisher_elim", topNodes = 1000)
-
-
-  res$gen_table$Fisher.elim <- as.numeric(res$gen_table$Fisher.elim)
-  if(any(is.na(res$gen_table$Fisher.elim))){
-    res$gen_table$Fisher.elim[is.na(res$gen_table$Fisher.elim)] <- 1e-30
+  
+  
+  if(methods == "elim"){
+    res$gen_table <- GenTable(go_data,
+                              Fisher.elim = res$elim,
+                              orderBy = "Fisher_elim", topNodes = topNodes)
+    
+    
+    res$gen_table$Fisher.elim <- as.numeric(res$gen_table$Fisher.elim)
+    if(any(is.na(res$gen_table$Fisher.elim))){
+      res$gen_table$Fisher.elim[is.na(res$gen_table$Fisher.elim)] <- 1e-30
+    }
+    ## adjust the p-values
+    res$gen_table$Fisher.elim_adjust <- p.adjust(res$gen_table$Fisher.elim, method = "fdr")
   }
-
-  ## adjust the p-values
-  res$gen_table$Fisher.elim_adjust <- p.adjust(res$gen_table$Fisher.elim, method = "fdr")
-
+  
+  
+  if(methods == "classic"){
+    res$gen_table <- GenTable(go_data,
+                              Fisher.elim = res$classic,
+                              orderBy = "Fisher_elim", topNodes = topNodes)
+    
+    
+    res$gen_table$Fisher.elim <- as.numeric(res$gen_table$Fisher.elim)
+    if(any(is.na(res$gen_table$Fisher.elim))){
+      res$gen_table$Fisher.elim[is.na(res$gen_table$Fisher.elim)] <- 1e-30
+    }
+    ## adjust the p-values
+    res$gen_table$Fisher.elim_adjust <- p.adjust(res$gen_table$Fisher.elim, method = "fdr")
+  }
   return(res)
-
+  
 }
 
 ###############################################################################
