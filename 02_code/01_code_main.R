@@ -391,6 +391,8 @@ ggsave("../03_figures/01_main/fig6_real_genes.eps", width = 15, height = 55, uni
 # Interesting gene sets: Up-regulated DEGs by Method I
 # Gene universe: All genes (after filtering)
 
+# @caro überarbeiten wenn bekannt was alles gebraucht wird
+
 # using method classic and top 1000 genes
 if(file.exists("051_GO_res_classic_1000.RData")){
   load("051_GO_res_classic_1000.RData")
@@ -434,20 +436,20 @@ if(file.exists("053_GO_res_elim_1000.RData")){
   deg_mod2_up <- rownames(res_mod2)[res_mod2$log2FoldChange > 0]
   GO_method2_up <- topGO_analysis(interesting = deg_mod2_up, all_genes = rownames(dds_method2),
                                   methods = "elim", topNodes = 1000)
-  
-  # # GO analysis on genes that are found by Method I, Method II or both (up-regulated)
-  # GO_method1_or2_up <- topGO_analysis(interesting = unique(c(deg_mod_1_up, deg_mod2_up)),
-  #                                     all_genes = unique(c(rownames(dds_method1), rownames(dds_method2))),
-  #                                     methods = "elim", topNodes = 1000)
-  # 
-  # # GO analysis on genes that are upregulated and only found by Method II
-  # GO_only_method2_up <- topGO_analysis(interesting = setdiff(deg_mod2_up, deg_mod_1_up), all_genes = rownames(dds_method2),
-  #                                      methods = "elim", topNodes = 1000)
-  # GO_only_method1_up <- topGO_analysis(interesting = setdiff(deg_mod_1_up, deg_mod2_up), all_genes = rownames(dds_method2),
-  #                                      methods = "elim", topNodes = 1000)
-  # 
-  save(GO_method1_up, GO_method2_up, #GO_method1_or2_up,
-       #GO_only_method2_up, GO_only_method1_up, 
+
+  # GO analysis on genes that are found by Method I, Method II or both (up-regulated)
+  GO_method1_or2_up <- topGO_analysis(interesting = unique(c(deg_mod_1_up, deg_mod2_up)),
+                                      all_genes = unique(c(rownames(dds_method1), rownames(dds_method2))),
+                                      methods = "elim", topNodes = 1000)
+
+  # GO analysis on genes that are upregulated and only found by Method II
+  GO_only_method2_up <- topGO_analysis(interesting = setdiff(deg_mod2_up, deg_mod_1_up), all_genes = rownames(dds_method2),
+                                       methods = "elim", topNodes = 1000)
+  GO_only_method1_up <- topGO_analysis(interesting = setdiff(deg_mod_1_up, deg_mod2_up), all_genes = rownames(dds_method2),
+                                       methods = "elim", topNodes = 1000)
+
+  save(GO_method1_up, GO_method2_up, GO_method1_or2_up,
+       GO_only_method2_up, GO_only_method1_up, 
        deg_mod2_up,
        file = "053_GO_res_elim_1000.RData")
 }
