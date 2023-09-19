@@ -1024,13 +1024,15 @@ topGOdataObj <- function(interesting.genes, gene.names = gene_id_all, node.size 
 #   intersting: name of interesting genes
 #   all_genes: name of all genes
 #   methods: method used for the runTest funtion
-#   topNodes: natural number, how many Nodes are of interest
+#   topNodes: TRUE/FALSE, if only top GO groups are of interest or all
+#   node_number: if topNodes == TRUE, number of top GO groups of interest
+
 
 
 # output:
 #   data frame containing  the go results with adjusted p-values
 
-topGO_analysis <- function(interesting, all_genes, methods = "elim", topNodes = 1000){
+topGO_analysis <- function(interesting, all_genes, methods = "elim", topNodes = TRUE, node_number){
 
 
 
@@ -1042,37 +1044,48 @@ topGO_analysis <- function(interesting, all_genes, methods = "elim", topNodes = 
   res <- sapply(methods,
                 function(x) runTest(go_data, algorithm = x, statistic = "fisher"))
 
-  # res$weight.log <- runTest(GOdata, algorithm = "weight", statistic = "fisher", sigRatio = "log")
-  # res$parentchild.intersect <- runTest(GOdata, algorithm = "parentchild", statistic = "fisher", joinFun = "intersect")
   
   
   if(methods == "elim"){
-    res$gen_table <- GenTable(go_data,
-                              Fisher.elim = res$elim,
-                              orderBy = "Fisher_elim", topNodes = topNodes)
+    if(topNodes){
+      res$gen_table <- GenTable(go_data,
+                                Fisher = res$elim,
+                                orderBy = "Fisher_elim", topNodes = node_number)
+    }
+    else{
+      res$gen_table <- GenTable(go_data,
+                                Fisher = res$elim,
+                                orderBy = "Fisher_elim", topNodes = length(res$elim@score))
+    }
     
     
-    res$gen_table$Fisher.elim <- as.numeric(res$gen_table$Fisher.elim)
-    if(any(is.na(res$gen_table$Fisher.elim))){
-      res$gen_table$Fisher.elim[is.na(res$gen_table$Fisher.elim)] <- 1e-30
+    res$gen_table$Fisher <- as.numeric(res$gen_table$Fisher)
+    if(any(is.na(res$gen_table$Fisher))){
+      res$gen_table$Fisher[is.na(res$gen_table$Fisher)] <- 1e-30
     }
     ## adjust the p-values
-    res$gen_table$Fisher.elim_adjust <- p.adjust(res$gen_table$Fisher.elim, method = "fdr")
+    res$gen_table$Fisher_adjust <- p.adjust(res$gen_table$Fisher, method = "fdr")
   }
   
   
   if(methods == "classic"){
-    res$gen_table <- GenTable(go_data,
-                              Fisher.elim = res$classic,
-                              orderBy = "Fisher_elim", topNodes = topNodes)
+    if(topNodes){
+      res$gen_table <- GenTable(go_data,
+                                Fisher = res$classic,
+                                orderBy = "Fisher_elim", topNodes = node_number)
+    }else{
+      res$gen_table <- GenTable(go_data,
+                                Fisher = res$classic,
+                                orderBy = "Fisher_elim", topNodes = length(res$classic@score))
+    }
     
     
-    res$gen_table$Fisher.elim <- as.numeric(res$gen_table$Fisher.elim)
-    if(any(is.na(res$gen_table$Fisher.elim))){
-      res$gen_table$Fisher.elim[is.na(res$gen_table$Fisher.elim)] <- 1e-30
+    res$gen_table$Fisher <- as.numeric(res$gen_table$Fisher)
+    if(any(is.na(res$gen_table$Fisher))){
+      res$gen_table$Fisher[is.na(res$gen_table$Fisher)] <- 1e-30
     }
     ## adjust the p-values
-    res$gen_table$Fisher.elim_adjust <- p.adjust(res$gen_table$Fisher.elim, method = "fdr")
+    res$gen_table$Fisher_adjust <- p.adjust(res$gen_table$Fisher, method = "fdr")
   }
   return(res)
   
@@ -1146,8 +1159,8 @@ dot_plot <- function(dfgene, n, add_title=""){
 
 
   print(ggplot(df,
-               aes(x = Significant/Annotated * 100, y = reorder(Term, -Fisher.elim_adjust),
-                   color = Fisher.elim_adjust,
+               aes(x = Significant/Annotated * 100, y = reorder(Term, -Fisher_adjust),
+                   color = Fisher_adjust,
                    size = Significant))+
           geom_point()+
           ggtitle((add_title))+
