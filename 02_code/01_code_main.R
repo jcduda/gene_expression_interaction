@@ -567,24 +567,24 @@ as.data.frame(res_mod1[[2]]$up)[only_mod1_up, ] %>%
 
 
 # number go groups only found by method i
-nrow(setdiff(GO_method1_up$gen_table %>% filter(Fisher_adjust < 0.05) %>%
+nrow(setdiff(GO_method1_up_all$gen_table %>% filter(Fisher_adjust < 0.05) %>%
                  select(GO.ID),
                # not significant groups in Method II
-               GO_method2_up$gen_table %>% filter(Fisher_adjust < 0.05)%>%
+               GO_method2_up_all$gen_table %>% filter(Fisher_adjust < 0.05)%>%
                  select(GO.ID)))
 
 # number go groups only found by method ii
-nrow(setdiff(GO_method2_up$gen_table %>% filter(Fisher_adjust < 0.05) %>%
+nrow(setdiff(GO_method2_up_all$gen_table %>% filter(Fisher_adjust < 0.05) %>%
                  select(GO.ID),
                # not significant groups in Method II
-               GO_method1_up$gen_table %>% filter(Fisher_adjust < 0.05)%>%
+               GO_method1_up_all$gen_table %>% filter(Fisher_adjust < 0.05)%>%
                  select(GO.ID)))
 
 # number go groups found by method i and ii
-nrow(intersect(GO_method1_up$gen_table %>% filter(Fisher_adjust < 0.05) %>%
+nrow(intersect(GO_method1_up_all$gen_table %>% filter(Fisher_adjust < 0.05) %>%
                  select(GO.ID),
                # not significant groups in Method II
-               GO_method2_up$gen_table %>% filter(Fisher_adjust < 0.05)%>%
+               GO_method2_up_all$gen_table %>% filter(Fisher_adjust < 0.05)%>%
                  select(GO.ID)))
 
 
@@ -594,37 +594,37 @@ nrow(intersect(GO_method1_up$gen_table %>% filter(Fisher_adjust < 0.05) %>%
 
 
 # top 10 GO Groups method i only
-GO_method1_up$gen_table %>% filter(GO.ID %in% intersect(
+xtable(GO_method1_up_all$gen_table %>% filter(GO.ID %in% intersect(
   # significant groups in Method I
-  GO_method1_up$gen_table %>% filter(Fisher_adjust < 0.05) %>%
+  GO_method1_up_all$gen_table %>% filter(Fisher_adjust < 0.05) %>%
     select(GO.ID),
   
   # not significant groups in Method II
-  GO_method2_up$gen_table %>% filter(Fisher_adjust > 0.05) %>%
+  GO_method2_up_all$gen_table %>% filter(Fisher_adjust > 0.05) %>%
     select(GO.ID)
-  )$GO.ID) %>% arrange(Fisher_adjust) %>% head(10)
+  )$GO.ID) %>% arrange(Fisher_adjust) %>% head(10))
   
 
-# top 10 GO Groups method i only
-GO_method2_up$gen_table %>% filter(GO.ID %in% intersect(
+# top 10 GO Groups method ii only
+xtable(GO_method2_up_all$gen_table %>% filter(GO.ID %in% intersect(
   # significant groups in Method II
-  GO_method2_up$gen_table %>% filter(Fisher_adjust < 0.05) %>%
+  GO_method2_up_all$gen_table %>% filter(Fisher_adjust < 0.05) %>%
     select(GO.ID),
   
   # not significant groups in Method II
-  GO_method1_up$gen_table %>% filter(Fisher_adjust > 0.05) %>%
+  GO_method1_up_all$gen_table %>% filter(Fisher_adjust > 0.05) %>%
     select(GO.ID)
-)$GO.ID) %>% arrange(Fisher_adjust) %>% head(10)
+)$GO.ID) %>% arrange(Fisher_adjust) %>% head(10))
 
 
 # plot of all p-values
 # p-values from GO Analyses for both methods
 
 # necessary data for plot
-selected_GO_method_1 <- GO_method1_up$gen_table %>%
+selected_GO_method_1 <- GO_method1_up_all$gen_table %>%
   dplyr::select(GO.ID, Fisher_adjust)
 
-selected_GO_method_2 <- GO_method2_up$gen_table %>%
+selected_GO_method_2 <- GO_method2_up_all$gen_table %>%
   dplyr::select(GO.ID, Fisher_adjust)
 
 # find GO Groups that are in both GO analyses
