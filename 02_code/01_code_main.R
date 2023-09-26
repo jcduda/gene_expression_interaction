@@ -19,6 +19,7 @@ library(dplyr)
 library(tibble)
 library(patchwork)
 library(xtable)
+library(openxlsx)
 
 source("../02_Code/00_functions.R")
 
@@ -393,7 +394,7 @@ ggsave("../03_figures/01_main/fig6_real_genes.eps", width = 15, height = 55, uni
 # Interesting gene sets: Up-regulated DEGs by Method I
 # Gene universe: All genes (after filtering)
 
-# @caro überarbeiten wenn bekannt was alles gebraucht wird, aufpassen weil alles gleich heißt
+
 
 # using method classic and top 1000 groups
 if(file.exists("051_GO_res_classic_1000.RData")){
@@ -487,7 +488,6 @@ if(file.exists("055_GO_res_classic_all.RData")){
        file = "055_GO_res_classic_all.RData")
 }
 
-# @caro: ab hier schuaen welche objekte mit der umbennenung wirklich gemeint sind
 dot_plot_method1_up <- dot_plot(GO_method1_up$gen_table, 10, "Method I: Upregulated DEGs")
 dot_plot_method2_up <- dot_plot(GO_method2_up$gen_table, 10, "Method II: Upregulated DEGs")
 dot_plot_method1_or_2_up <- dot_plot(GO_method1_or2_up$gen_table, 10, "Method I or II: Upregulated DEGs")
@@ -514,6 +514,23 @@ GO_method1_or2_up$gen_table[1:15, c("Term", "Fisher_adjust")] %>%
   mutate('Method I or II' = paste0(Term, " (", signif(Fisher_adjust, 3),")"))%>%
   dplyr::select('Method I or II')))
 
+# save table with classic in excel
+wb <- createWorkbook()
+
+# Add the first sheet and write data
+addWorksheet(wb, "Method I")
+writeData(wb, sheet = "Method I", x = GO_method1_up$gen_table[, c("Term", "Fisher_adjust")])
+# Add the second sheet and write data
+addWorksheet(wb, "Method II")
+writeData(wb, sheet = "Method II", x =  GO_method2_up$gen_table[, c("Term", "Fisher_adjust")])
+# Add the third sheet and write data
+addWorksheet(wb, "Method I and II")
+writeData(wb, sheet = "Method I and II", x =  GO_method1_or2_up$gen_table[, c("Term", "Fisher_adjust")])
+
+# Save the Excel workbook
+saveWorkbook(wb, "090_table3.xlsx")
+
+
 # table with elim
 xtable(cbind(GO_method1_up_elim$gen_table[1:15, c("Term", "Fisher_adjust")] %>%
                mutate('Method I' = paste0(Term, " (", signif(Fisher_adjust, 3),")")) %>%
@@ -530,7 +547,7 @@ xtable(cbind(GO_method1_up_elim$gen_table[1:15, c("Term", "Fisher_adjust")] %>%
 
 
 # Look at up-regulated genes found by Mehotd I only /Method II only ---------------------------
-# @caro hier passende beschriftung reihenfolge beachten (tabelle 5 und 6)
+
 
 # Top 10 most significant genes Method ii only
 
@@ -544,6 +561,8 @@ as.data.frame(res_mod2)[only_mod2_up, ] %>%
             c("ens_name" = "gene_id")) %>%
   dplyr::select(ens_name, gene_name, log2FoldChange, padj) %>%
   xtable()
+
+
 
 plot_it("ENSMUSG00000049723", dds_method2, ref = 3, start = 5.5, s1 = 1.5, s_arrow = 1.1, sl = 1.1)
 plot_it("ENSMUSG00000032808", dds_method2, ref = 3, start = 5.5, s1 = 1.5, s_arrow = 1.1, sl = 1.1)
@@ -561,6 +580,29 @@ as.data.frame(res_mod1[[2]]$up)[only_mod1_up, ] %>%
             c("ens_name" = "gene_id")) %>%
   dplyr::select(ens_name, gene_name, log2FoldChange, padj) %>%
   xtable()
+
+
+# save all genes as excel file, one sheet for only method I and one for only method ii
+wb <- createWorkbook()
+
+# Add the first sheet and write data
+addWorksheet(wb, "Method II only")
+writeData(wb, sheet = "Method II only", x = as.data.frame(res_mod2)[only_mod2_up, ] %>%
+            dplyr::arrange(padj) %>% rownames_to_column("ens_name") %>%
+            left_join(., as.data.frame(rowData(dds_method2))[, c("gene_id", "gene_name")],
+                      c("ens_name" = "gene_id")) %>%
+            dplyr::select(ens_name, gene_name, log2FoldChange, padj))
+# Add the second sheet and write data
+addWorksheet(wb, "Method I only")
+writeData(wb, sheet = "Method I only", x =  as.data.frame(res_mod1[[2]]$up)[only_mod1_up, ] %>%
+            dplyr::arrange(padj) %>%rownames_to_column("ens_name") %>%
+            left_join(., as.data.frame(rowData(dds_method1))[, c("gene_id", "gene_name")],
+                      c("ens_name" = "gene_id")) %>%
+            dplyr::select(ens_name, gene_name, log2FoldChange, padj) )
+
+# Save the Excel workbook
+saveWorkbook(wb, "100_table_A_genes_only_one_method.xlsx")
+
 
 # GO Analysis: Groups only in Method I/ only in Method II ----------------------
 
