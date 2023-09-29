@@ -437,62 +437,15 @@ if(file.exists("051_GO_res_classic_1000.RData")){
                                       all_genes = unique(c(rownames(dds_method1), rownames(dds_method2))),
                                       methods = "classic", topNodes = TRUE, node_number = 1000)
 
-  # GO analysis on genes that are upregulated and only found by Method I or II
-  # (Not used in the paper)
-  GO_only_method2_up <- topGO_analysis(interesting = setdiff(deg_mod2_up, deg_mod_1_up), all_genes = rownames(dds_method2),
-                                  methods = "classic", topNodes = TRUE, node_number = 1000)
-  GO_only_method1_up <- topGO_analysis(interesting = setdiff(deg_mod_1_up, deg_mod2_up), all_genes = rownames(dds_method2),
-                                       methods = "classic", topNodes = TRUE, node_number = 1000)
 
   save(GO_method1_up, GO_method2_up, GO_method1_or2_up,
-       GO_only_method2_up, GO_only_method1_up, deg_mod2_up,
+       deg_mod2_up,
        file = "051_GO_res_classic_1000.RData")
 }
 
-# # using mehtod classic and all go groups
-# if(file.exists("055_GO_res_classic_all.RData")){
-#   load("055_GO_res_classic_all.RData")
-# } else {
-#   set.seed(1234)
-#   GO_method1_up_all <- topGO_analysis(interesting = deg_mod_1_up, all_genes = rownames(dds_method1),
-#                                   methods = "classic", topNodes = FALSE)
-#   # Genes that are DEG by Method II and have a positive log2FC
-#   # Note: res_mod2 already fitlered by log2FC and adj. p-value
-#   deg_mod2_up <- rownames(res_mod2)[res_mod2$log2FoldChange > 0]
-#   GO_method2_up_all <- topGO_analysis(interesting = deg_mod2_up, all_genes = rownames(dds_method2),
-#                                   methods = "classic", topNodes = FALSE)
-#
-#   # GO analysis on genes that are found by Method I, Method II or both (up-regulated)
-#   # GO_method1_or2_up <- topGO_analysis(interesting = unique(c(deg_mod_1_up, deg_mod2_up)),
-#   #                                     all_genes = unique(c(rownames(dds_method1), rownames(dds_method2))),
-#   #                                     methods = "classic", topNodes = TRUE, node_number = 2000)
-#   #
-#   # # GO analysis on genes that are upregulated and only found by Method II
-#   # GO_only_method2_up <- topGO_analysis(interesting = setdiff(deg_mod2_up, deg_mod_1_up), all_genes = rownames(dds_method2),
-#   #                                      methods = "classic", topNodes = TRUE, node_number = 2000)
-#   # GO_only_method1_up <- topGO_analysis(interesting = setdiff(deg_mod_1_up, deg_mod2_up), all_genes = rownames(dds_method2),
-#   #                                      methods = "classic", topNodes = TRUE, node_number = 1000)
-#
-#   save(GO_method1_up_all, GO_method2_up_all, #GO_method1_or2_up,
-#        #GO_only_method2_up, GO_only_method1_up,
-#        deg_mod2_up,
-#        file = "055_GO_res_classic_all.RData")
-# }
-#
-# dot_plot_method1_up <- dot_plot(GO_method1_up$gen_table, 10, "Method I: Upregulated DEGs")
-# dot_plot_method2_up <- dot_plot(GO_method2_up$gen_table, 10, "Method II: Upregulated DEGs")
-# dot_plot_method1_or_2_up <- dot_plot(GO_method1_or2_up$gen_table, 10, "Method I or II: Upregulated DEGs")
-# dot_plot_only_method2_up <- dot_plot(GO_only_method2_up$gen_table, 10, "Only Method II: Upregulated DEGs")
-# dot_plot_only_method1_up <- dot_plot(GO_only_method1_up$gen_table, 10, "Only Method I: Upregulated DEGs")
-#
-# ggsave(dot_plot_method1_up, file = "052_dot_plot_method1_up.pdf", width = 12, height = 6)
-# ggsave(dot_plot_method2_up, file = "053_dot_plot_method2_up.pdf", width = 12, height = 6)
-# ggsave(dot_plot_method1_or_2_up, file = "054_dot_plot_method1_or_2_up.pdf", width = 12, height = 6)
-# ggsave(dot_plot_only_method2_up, file = "055_dot_plot_only_method2_up.pdf", width = 12, height = 6)
-# ggsave(dot_plot_only_method1_up, file = "056_dot_plot_only_method1_up.pdf", width = 12, height = 6)
 
 
-# table with classic
+# Build Table 3 (LaTeX Code, manually polished for paper)
 xtable(cbind(GO_method1_up$gen_table[1:15, c("Term", "Fisher_adjust")] %>%
   mutate('Method I' = paste0(Term, " (", signif(Fisher_adjust, 3),")")) %>%
     dplyr::select('Method I'),
@@ -505,42 +458,43 @@ GO_method1_or2_up$gen_table[1:15, c("Term", "Fisher_adjust")] %>%
   mutate('Method I or II' = paste0(Term, " (", signif(Fisher_adjust, 3),")"))%>%
   dplyr::select('Method I or II')))
 
-# save table with classic in excel
+# Supplementary Table 1 --------------------------------------------------------
+
 wb <- createWorkbook()
 
 # Add the first sheet and write data
 addWorksheet(wb, "Method I")
-writeData(wb, sheet = "Method I", x = GO_method1_up$gen_table[, c("Term", "Fisher_adjust")])
+writeData(wb, sheet = "Method I", x = GO_method1_up$gen_table[, c("GO.ID", "Term", "Fisher_adjust")])
 # Add the second sheet and write data
 addWorksheet(wb, "Method II")
-writeData(wb, sheet = "Method II", x =  GO_method2_up$gen_table[, c("Term", "Fisher_adjust")])
+writeData(wb, sheet = "Method II", x =  GO_method2_up$gen_table[, c("GO.ID", "Term", "Fisher_adjust")])
 # Add the third sheet and write data
 addWorksheet(wb, "Method I and II")
-writeData(wb, sheet = "Method I and II", x =  GO_method1_or2_up$gen_table[, c("Term", "Fisher_adjust")])
+writeData(wb, sheet = "Method I and II", x =  GO_method1_or2_up$gen_table[, c("GO.ID", "Term", "Fisher_adjust")])
 
 # Save the Excel workbook
-saveWorkbook(wb, "090_table3.xlsx")
+saveWorkbook(wb, "../04_supplement/supp_table1_GO_groups.xlsx")
 
 
-# table with elim
-xtable(cbind(GO_method1_up_elim$gen_table[1:15, c("Term", "Fisher_adjust")] %>%
-               mutate('Method I' = paste0(Term, " (", signif(Fisher_adjust, 3),")")) %>%
-               dplyr::select('Method I'),
+#-------------------------------------------------------------------------------
+# Table 4 (Appendix) Most significant genes only found by Method I / Method II -
+#-------------------------------------------------------------------------------
 
-             GO_method2_up_elim$gen_table[1:15, c("Term", "Fisher_adjust")] %>%
-               mutate('Method II' = paste0(Term, " (", signif(Fisher_adjust, 3),")"))%>%
-               dplyr::select('Method II'),
+# Top 10 most significant genes Method i only
 
-             GO_method1_or2_up_elim$gen_table[1:15, c("Term", "Fisher_adjust")] %>%
-               mutate('Method I or II' = paste0(Term, " (", signif(Fisher_adjust, 3),")"))%>%
-               dplyr::select('Method I or II')))
+# Top 10 most significant DEGSs found by Method I only
+only_mod1_up <- setdiff(deg_mod_1_up, deg_mod2_up)
+
+as.data.frame(res_mod1[[2]]$up)[only_mod1_up, ] %>%
+  dplyr::arrange(padj) %>%
+  head(10) %>% rownames_to_column("ens_name") %>%
+  left_join(., as.data.frame(rowData(dds_method1))[, c("gene_id", "gene_name")],
+            c("ens_name" = "gene_id")) %>%
+  dplyr::select(ens_name, gene_name, log2FoldChange, padj) %>%
+  xtable()
 
 
-
-# Look at up-regulated genes found by Mehotd I only /Method II only ---------------------------
-
-
-# Top 10 most significant genes Method ii only
+# Top 10 most significant DEGSs found by Method II only
 
 deg_mod2_up <- rownames(res_mod2)[res_mod2$log2FoldChange > 0]
 only_mod2_up <- setdiff(deg_mod2_up, deg_mod_1_up)
@@ -553,25 +507,9 @@ as.data.frame(res_mod2)[only_mod2_up, ] %>%
   dplyr::select(ens_name, gene_name, log2FoldChange, padj) %>%
   xtable()
 
-
-
-plot_it("ENSMUSG00000049723", dds_method2, ref = 3, start = 5.5, s1 = 1.5, s_arrow = 1.1, sl = 1.1)
-plot_it("ENSMUSG00000032808", dds_method2, ref = 3, start = 5.5, s1 = 1.5, s_arrow = 1.1, sl = 1.1)
-plot_it("ENSMUSG00000030786", dds_method2, ref = 3, start = 5.5, s1 = 1.5, s_arrow = 1.1, sl = 1.1)
-
-# Top 10 most significant genes Method i only
-
-# genes that are only deg in method i
-only_mod1_up <- setdiff(deg_mod_1_up, deg_mod2_up)
-
-as.data.frame(res_mod1[[2]]$up)[only_mod1_up, ] %>%
-  dplyr::arrange(padj) %>%
-  head(10) %>% rownames_to_column("ens_name") %>%
-  left_join(., as.data.frame(rowData(dds_method1))[, c("gene_id", "gene_name")],
-            c("ens_name" = "gene_id")) %>%
-  dplyr::select(ens_name, gene_name, log2FoldChange, padj) %>%
-  xtable()
-
+#-------------------------------------------------------------------------------
+# Supplementary Table 2: All DEGs found only by Method I or II, respectively
+#-------------------------------------------------------------------------------
 
 # save all genes as excel file, one sheet for only method I and one for only method ii
 wb <- createWorkbook()
@@ -592,7 +530,7 @@ writeData(wb, sheet = "Method I only", x =  as.data.frame(res_mod1[[2]]$up)[only
             dplyr::select(ens_name, gene_name, log2FoldChange, padj) )
 
 # Save the Excel workbook
-saveWorkbook(wb, "100_table_A_genes_only_one_method.xlsx")
+saveWorkbook(wb, "../04_supplement/supp_table2_genes_only_one_method.xlsx")
 
 
 # GO Analysis: Groups only in Method I/ only in Method II ----------------------
