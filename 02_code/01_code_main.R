@@ -1,14 +1,15 @@
 
-# Code to generate all figures and analysis for the main part of the manuscript
+# Code to generate all figures and analysis of the manuscript
 # "Benefit of using interaction effects for the analysis of high-dimensional time-response or dose-response data for two-group comparisons"
 #
 # Contact: duda@statistik.tu-dortmund.de
 
 # Setup ------------------------------------------------------------------------
 
+# Set working directy to where github repository is to the directpry 02_code
 # setwd("C:/Users/duda/Projekte/Git/gene_expression_interaction/02_Code")
 
-# ONLY the required packages
+# Load the required packages
 
 library(ggplot2)
 library(ggpubr)
@@ -21,14 +22,17 @@ library(patchwork)
 library(xtable)
 library(openxlsx)
 
+# Load helping functions
+
 source("../02_Code/00_functions.R")
 
 # Data -------------------------------------------------------------------------
 
 # Note:
-# The data was provided by the IfADo and will be provided by request, given that the IfaDo allows it.
+# The original data is publicly made available by the IfADo here:
+# https://www.ncbi.nlm.nih.gov/sra/PRJNA953810
 
-
+# Load the pre-processed data
 load("../01_data/010_gse.RData")
 
 # Figure 1 ---------------------------------------------------------------------
@@ -60,9 +64,10 @@ p6 <- scheme_interaction_plot(df4, "f) interaction -")
 # combine all plots
 ggarrange(p1, p2, p3, p4, p5, p6, ncol = 3, nrow = 2, common.legend = TRUE, legend="top")
 ggsave(file = "../03_figures/01_main/fig_1_interaction_example_2.eps", device = cairo_ps, width = 10, height = 9)
+ggsave(file = "../03_figures/01_main/fig_1_interaction_example_2.jpeg", width = 10, height = 9)
 
 
-# Figure 2, upper --------------------------------------------------------------
+# Figure 2, left --------------------------------------------------------------
 
 # dds object for method 1
 
@@ -76,12 +81,8 @@ if(file.exists("020_dds_method1.RData")){
 }
 
 
-plot_no_int("ENSMUSG00000069170", dds_method1, ref = 3, start = 3) +
+p1 <- plot_no_int("ENSMUSG00000069170", dds_method1, ref = 3, start = 3) +
   theme(legend.position = "none")
-ggsave(file = "../03_figures/01_main/fig2_upper_example_gene.eps", width = 8, height = 4.5)
-ggsave(file = "../03_figures/01_main/fig2_upper_example_gene.jpeg", width = 8, height = 4.5)
-
-# Figure 2, lower --------------------------------------------------------------
 
 # dds object method 2
 if(file.exists("030_dds_method2.RData")){
@@ -92,9 +93,14 @@ if(file.exists("030_dds_method2.RData")){
 }
 
 
-plot_it("ENSMUSG00000069170", dds_method2, ref = 3, start = 5.5, s1 = 1.5, s_arrow = 1.1, sl = 1.1)
-ggsave(file = "../03_figures/01_main/fig2_lower_example_gene.eps", width = 8, height = 4.5)
-ggsave(file = "../03_figures/01_main/fig2_lower_example_gene.jpeg", width = 8, height = 4.5)
+p2 <- plot_it("ENSMUSG00000069170", dds_method2, ref = 3, start = 5.5, s1 = 1.5, s_arrow = 1.1, sl = 1.1)
+
+ggarrange(p1, p2, common.legend = TRUE, legend = "bottom")
+
+ggsave(file = "../03_figures/01_main/fig2_both_example_gene.eps", width = 16, height = 4.5)
+ggsave(file = "../03_figures/01_main/fig2_both_example_gene.jpeg", width = 16, height = 4.5)
+
+
 
 # Figure 3 ---------------------------------------------------------------------
 
@@ -107,37 +113,120 @@ pl_scheme_5 <- scheme_model(0.5, 1.01, 0.6, 1.43, 0.05, "DEG", "not DEG", F, T, 
 pl_scheme_6 <- scheme_model(1.5, 1.89, 1.6, 0.55, 0.05, "DEG", "DEG", F, T, F, T, 6)
 pl_scheme_7 <- scheme_model(1, 1.39, 1.1, 0.7, 0.05, "not DEG", "DEG", F, F, F, T, 7)
 
+# combining all plots
+plot_all <- ggarrange(pl_scheme_1[[1]], pl_scheme_1[[2]],
+                      pl_scheme_2[[1]], pl_scheme_2[[2]],
+                      pl_scheme_3[[1]], pl_scheme_3[[2]],
+                      pl_scheme_4[[1]], pl_scheme_4[[2]],
+                      pl_scheme_5[[1]], pl_scheme_5[[2]],
+                      pl_scheme_6[[1]], pl_scheme_6[[2]],
+                      pl_scheme_7[[1]], pl_scheme_7[[2]],
+                      ncol = 2, nrow = 7, common.legend = TRUE, legend="bottom")
 
-# save plots for method i and ii per scenario
-
-plot_first_row <- ggarrange(pl_scheme_1[[1]],pl_scheme_1[[2]], ncol = 2, nrow = 1)
-annotate_figure(plot_first_row, fig.lab.size = 20,
-                top = text_grob("Method I                   Method II", size = 25, face = "bold"))
-ggsave(file = "../03_figures/01_main/fig3_scheme_1.eps", device = cairo_ps, width = 20, height = 10, unit  = "cm")
-
-
-ggarrange(pl_scheme_2[[1]], pl_scheme_2[[2]],ncol = 2, nrow = 1)
-ggsave(file = "../03_figures/01_main/fig3_scheme_2.eps", device = cairo_ps, width = 20, height = 10, unit  = "cm")
-
-
-ggarrange(pl_scheme_3[[1]], pl_scheme_3[[2]],ncol = 2, nrow = 1)
-ggsave(file = "../03_figures/01_main/fig3_scheme_3.eps", device = cairo_ps, width = 20, height = 10, unit  = "cm")
-
-
-ggarrange(pl_scheme_4[[1]], pl_scheme_4[[2]],ncol = 2, nrow = 1)
-ggsave(file = "../03_figures/01_main/fig3_scheme_4.eps", device = cairo_ps, width = 20, height = 10, unit  = "cm")
+# add annotation
+annotate_figure(plot_all, fig.lab.size = 20,
+                top = text_grob("Method I             Method II", size = 25, face = "bold"))
+ggsave("../03_figures/01_main/fig3_scheme_genes.eps", width = 15, height = 55, unit = "cm",
+       device = cairo_ps)
 
 
-ggarrange(pl_scheme_5[[1]], pl_scheme_5[[2]],ncol = 2, nrow = 1)
-ggsave(file = "../03_figures/01_main/fig3_scheme_5.eps", device = cairo_ps, width = 20, height = 10, unit  = "cm")
 
 
-ggarrange(pl_scheme_6[[1]], pl_scheme_6[[2]],ncol = 2, nrow = 1)
-ggsave(file = "../03_figures/01_main/fig3_scheme_6.eps", device = cairo_ps, width = 20, height = 10, unit  = "cm")
+# Figure 4 ---------------------------------------------------------------------
+
+# 1
+#method i
+p1.11 <- plot_it_3_6(g = "ENSMUSG00000037031", dds = dds_method2, ref = 3, start = 5.2, sl = 1.1, lim1 = 5.2, lim2 = 8.1, main = 0.1, interac = 0.1)+
+  theme(legend.position="none",
+  axis.title.x = element_blank(),
+  axis.title.y = element_blank(),
+  legend.title = element_blank(),
+  legend.text = element_text(size = 20))
+# method ii
+p1.12 <- plot_it_3_6_mod1(g = "ENSMUSG00000037031", week3 = dds_obj_mod1[[1]], week6 = dds_obj_mod1[[2]], ref = 3, start = 5.2,  sl = 1.1, lim1 = 5.2, lim2 = 8.1, main3 = 0.1, main6 = 0.1, number = paste("1: ", rowData(dds_method2["ENSMUSG00000037031",])[,2]))+
+  theme(legend.position="none",
+        axis.title.x = element_blank(),
+        axis.title.y = element_blank(),
+        legend.title = element_blank(),
+        legend.text = element_text(size = 20))
 
 
-ggarrange(pl_scheme_7[[1]], pl_scheme_7[[2]],ncol = 2, nrow = 1, legend = "bottom", common.legend = T)
-ggsave(file = "../03_figures/01_main/fig3_scheme_7.eps", device = cairo_ps, width = 20, height = 10, unit  = "cm")
+# 2
+# method i
+p2.21 <-  plot_it_3_6(g = "ENSMUSG00000035184", dds = dds_method2, ref = 3, start = 6, sl = 1.1, lim1 = 6, lim2 = 10.5, main = 0.08)+  theme(axis.title.x = element_blank()) +
+  theme(axis.title.y = element_blank(), legend.title = element_blank(),
+        legend.text = element_text(size = 20))
+# method ii
+p2.22 <-   plot_it_3_6_mod1(g = "ENSMUSG00000035184", week3 = dds_obj_mod1[[1]], week6 = dds_obj_mod1[[2]], ref = 3, start = 6,  sl = 1.1, lim1 = 6, lim2 = 10.5, main3 = 0.12, number = paste("2: ", rowData(dds_method2["ENSMUSG00000035184",])[,2]))+  theme(axis.title.x = element_blank()) +
+  theme(axis.title.y = element_blank(), legend.title = element_blank(),
+        legend.text = element_text(size = 20))
+
+# 3
+# method i
+p3.21 <- plot_it_3_6(g = "ENSMUSG00000022439", dds = dds_method2, ref = 3, start = 4,  sl = 1.1, lim1 = 4, lim2 = 8)+  theme(axis.title.x = element_blank()) +
+  theme(axis.title.y = element_blank(), legend.title = element_blank(),
+        legend.text = element_text(size = 20))
+# method ii
+p3.22 <- plot_it_3_6_mod1(g = "ENSMUSG00000022439", week3 = dds_obj_mod1[[1]], week6 = dds_obj_mod1[[2]], ref = 3, start = 4, sl = 1.1, lim1 = 4, lim2 = 8, number =paste("3: ", rowData(dds_method2["ENSMUSG00000022439",])[,2]))+  theme(axis.title.x = element_blank()) +
+  theme(axis.title.y = element_blank(), legend.title = element_blank(),
+        legend.text = element_text(size = 20))
+
+# 4
+# method i
+p4.21 <- plot_it_3_6(g = "ENSMUSG00000112013", dds = dds_method2, ref = 3, start = 2, sl = 1.1, lim1 = 2, lim2 = 6.5)+  theme(axis.title.x = element_blank()) +
+  theme(axis.title.y = element_blank(), legend.title = element_blank(),
+        legend.text = element_text(size = 20))
+# method ii
+p4.22 <- plot_it_3_6_mod1(g = "ENSMUSG00000112013", week3 = dds_obj_mod1[[1]], week6 = dds_obj_mod1[[2]], ref = 3, start = 2, s1 = 1.5,  sl = 1.1, lim1 = 2, lim2 = 6.5,number =paste("4: ", rowData(dds_method2["ENSMUSG00000112013",])[,2]))+  theme(axis.title.x = element_blank()) +
+  theme(axis.title.y = element_blank(), legend.title = element_blank(),
+        legend.text = element_text(size = 20))
+
+# 5
+# method i
+p5.11 <- plot_it_3_6(g = "ENSMUSG00000037348", dds = dds_method2, ref = 3, start = 10,  sl = 1.1, lim1 = 10, lim2 = 13, main = 0.1, interac = 0.1)+  theme(axis.title.x = element_blank()) +
+  theme(axis.title.y = element_blank(), legend.title = element_blank(),
+        legend.text = element_text(size = 20))
+# method ii
+p5.12 <- plot_it_3_6_mod1(g = "ENSMUSG00000037348", week3 = dds_obj_mod1[[1]], week6 = dds_obj_mod1[[2]], ref = 3, start = 10,  sl = 1.1, lim1 = 10, lim2 = 13, main3 =  0.1, number =paste("5: ", rowData(dds_method2["ENSMUSG00000037348",])[,2]))+  theme(axis.title.x = element_blank()) +
+  theme(axis.title.y = element_blank(), legend.title = element_blank(),
+        legend.text = element_text(size = 20))
+
+# 6
+# method i
+p6.11 <- plot_it_3_6(g = "ENSMUSG00000067951", dds = dds_method2, ref = 3, start = 4.5, sl = 1.1, lim1 = 4.5, lim2 = 7.5, main =  0.1)+  theme(axis.title.x = element_blank()) +
+  theme(axis.title.y = element_blank(), legend.title = element_blank(),
+        legend.text = element_text(size = 20))
+# method ii
+p6.12 <- plot_it_3_6_mod1(g = "ENSMUSG00000067951", week3 = dds_obj_mod1[[1]], week6 = dds_obj_mod1[[2]], ref = 3, start = 4.5,  sl = 1.1, lim1 = 4.5, lim2 = 7.5, main3 = 0.1, number =paste("6: ", rowData(dds_method2["ENSMUSG00000067951",])[,2]))+  theme(axis.title.x = element_blank()) +
+  theme(axis.title.y = element_blank(), legend.title = element_blank(),
+        legend.text = element_text(size = 20))
+
+# 7
+# method i
+p7.11 <- plot_it_3_6(g = "ENSMUSG00000028637", dds = dds_method2, ref = 3, start = 6.3,   sl = 1.1, lim1 = 6.3, lim2 = 8.2, main = 0.1)+ #+labs(x = "weeks", y = "")
+  theme(axis.title.x = element_blank()) +
+  theme(axis.title.y = element_blank(), legend.title = element_blank(),
+        legend.text = element_text(size = 20))
+# method ii
+p7.12 <- plot_it_3_6_mod1(g = "ENSMUSG00000028637", week3 = dds_obj_mod1[[1]], week6 = dds_obj_mod1[[2]], ref = 3, start = 6.3,  sl = 1.1, lim1 = 6.3, lim2 = 8.2, main3 = 0.1, main6 = -0.1, number =paste("7: ", rowData(dds_method2["ENSMUSG00000028637",])[,2]))+# +labs(x = "weeks", y = "")
+  theme(axis.title.x = element_blank()) +
+  theme(axis.title.y = element_blank(), legend.title = element_blank(),
+        legend.text = element_text(size = 20))
+
+
+
+# combining all plots
+plot_all <- ggarrange(p1.12, p1.11, p2.22, p2.21, p3.22, p3.21, p4.22, p4.21,
+                      p5.12, p5.11, p6.12, p6.11, p7.12, p7.11,
+                      ncol = 2, nrow = 7, common.legend = TRUE, legend="bottom")
+
+# add annotation
+annotate_figure(plot_all, fig.lab.size = 20,
+                top = text_grob("Method I             Method II", size = 25, face = "bold"),
+                left = text_grob("Log2(normalized counts)", rot = 90, size = 25, face = "bold"))
+ggsave("../03_figures/01_main/fig4_real_genes.eps", width = 15, height = 55, unit = "cm",
+       device = cairo_ps)
+
 
 
 
@@ -184,7 +273,7 @@ if(file.exists("040_res_mod1.RData")){
 }
 
 
-# table
+# Print the table
 # first row up, second row down regulated
 week_3_6_mod_1_table <- data.frame(
   "Week 3" = c(length(setdiff(mod_1_up$week3, c(mod_1_up$week6))),
@@ -213,11 +302,15 @@ data.frame("Method I only" = c(length(deg_mod_1_up) - sum(deg_mod_1_up %in% rown
            "Method II only" = c(length(rownames(res_mod2)[which(res_mod2$log2FoldChange > 0)]) - sum(rownames(res_mod2)[which(res_mod2$log2FoldChange > 0)] %in% deg_mod_1_up),
                                 length(rownames(res_mod2)[which(res_mod2$log2FoldChange < 0)]) - sum(rownames(res_mod2)[which(res_mod2$log2FoldChange < 0)] %in% deg_mod_1_down))
 )
-# Figure 4 ---------------------------------------------------------------------
+
+
+
+# Figure 5 ---------------------------------------------------------------------
 plot_it("ENSMUSG00000025138", dds_method2, ref = 3, start = 9, s1 = 1.5, s_arrow = 1.1, sl = 1.1)
 
-ggsave(file = "../03_figures/01_main/fig4_example_gene.eps", width = 8, height = 4.5)
-# Figure 5 ---------------------------------------------------------------------
+ggsave(file = "../03_figures/01_main/fig5_example_gene.eps", width = 8, height = 4.5)
+
+# Figure 6 ---------------------------------------------------------------------
 
 #  method I: only the output of results = no shrinkage
 res_mod1_week3 <- results(dds_obj_mod1$week3, name = "diet_HFD_vs_SD")
@@ -306,106 +399,35 @@ ggplot(df1_no_p_no_sh, aes(x = main, y = main_inter, col = col)) +
                      labels = c(-2, "-log2(1.5)", 0, "log2(1.5)", 2), limits = c(-2,2))
 
 
-ggsave(file = "../03_figures/01_main/fig5_scatter.eps", width = 25, height = 15, unit = "cm",
+ggsave(file = "../03_figures/01_main/fig6_scatter.eps", width = 25, height = 15, unit = "cm",
        device = cairo_ps)
-ggsave(file = "../03_figures/01_main/fig5_scatter.jpeg", width = 25, height = 15, unit = "cm")
-# Figure 6 ---------------------------------------------------------------------
-
-# 1
-#method i
-p1.11 <- plot_it_3_6(g = "ENSMUSG00000037031", dds = dds_method2, ref = 3, start = 5.2, sl = 1.1, lim1 = 5.2, lim2 = 8.1, main = 0.1, interac = 0.1)+
-  theme(legend.position="none")+
-  theme(axis.title.x = element_blank()) +
-  theme(axis.title.y = element_blank())
-# method ii
-p1.12 <- plot_it_3_6_mod1(g = "ENSMUSG00000037031", week3 = dds_obj_mod1[[1]], week6 = dds_obj_mod1[[2]], ref = 3, start = 5.2,  sl = 1.1, lim1 = 5.2, lim2 = 8.1, main3 = 0.1, main6 = 0.1, number = paste("1: ", rowData(dds_method2["ENSMUSG00000037031",])[,2]))+
-  theme(legend.position="none") +
-  theme(axis.title.x = element_blank()) +
-  theme(axis.title.y = element_blank())
-
-
-# 2
-# method i
-p2.21 <-  plot_it_3_6(g = "ENSMUSG00000035184", dds = dds_method2, ref = 3, start = 6, sl = 1.1, lim1 = 6, lim2 = 10.5, main = 0.08)+  theme(axis.title.x = element_blank()) +
-  theme(axis.title.y = element_blank())
-# method ii
-p2.22 <-   plot_it_3_6_mod1(g = "ENSMUSG00000035184", week3 = dds_obj_mod1[[1]], week6 = dds_obj_mod1[[2]], ref = 3, start = 6,  sl = 1.1, lim1 = 6, lim2 = 10.5, main3 = 0.12, number = paste("2: ", rowData(dds_method2["ENSMUSG00000035184",])[,2]))+  theme(axis.title.x = element_blank()) +
-  theme(axis.title.y = element_blank())
-
-# 3
-# method i
-p3.21 <- plot_it_3_6(g = "ENSMUSG00000022439", dds = dds_method2, ref = 3, start = 4,  sl = 1.1, lim1 = 4, lim2 = 8)+  theme(axis.title.x = element_blank()) +
-  theme(axis.title.y = element_blank())
-# method ii
-p3.22 <- plot_it_3_6_mod1(g = "ENSMUSG00000022439", week3 = dds_obj_mod1[[1]], week6 = dds_obj_mod1[[2]], ref = 3, start = 4, sl = 1.1, lim1 = 4, lim2 = 8, number =paste("3: ", rowData(dds_method2["ENSMUSG00000022439",])[,2]))+  theme(axis.title.x = element_blank()) +
-  theme(axis.title.y = element_blank())
-
-# 4
-# method i
-p4.21 <- plot_it_3_6(g = "ENSMUSG00000112013", dds = dds_method2, ref = 3, start = 2, sl = 1.1, lim1 = 2, lim2 = 6.5)+  theme(axis.title.x = element_blank()) +
-  theme(axis.title.y = element_blank())
-# method ii
-p4.22 <- plot_it_3_6_mod1(g = "ENSMUSG00000112013", week3 = dds_obj_mod1[[1]], week6 = dds_obj_mod1[[2]], ref = 3, start = 2, s1 = 1.5,  sl = 1.1, lim1 = 2, lim2 = 6.5,number =paste("4: ", rowData(dds_method2["ENSMUSG00000112013",])[,2]))+  theme(axis.title.x = element_blank()) +
-  theme(axis.title.y = element_blank())
-
-# 5
-# method i
-p5.11 <- plot_it_3_6(g = "ENSMUSG00000037348", dds = dds_method2, ref = 3, start = 10,  sl = 1.1, lim1 = 10, lim2 = 13, main = 0.1, interac = 0.1)+  theme(axis.title.x = element_blank()) +
-  theme(axis.title.y = element_blank())
-# method ii
-p5.12 <- plot_it_3_6_mod1(g = "ENSMUSG00000037348", week3 = dds_obj_mod1[[1]], week6 = dds_obj_mod1[[2]], ref = 3, start = 10,  sl = 1.1, lim1 = 10, lim2 = 13, main3 =  0.1, number =paste("5: ", rowData(dds_method2["ENSMUSG00000037348",])[,2]))+  theme(axis.title.x = element_blank()) +
-  theme(axis.title.y = element_blank())
-
-# 6
-# method i
-p6.11 <- plot_it_3_6(g = "ENSMUSG00000067951", dds = dds_method2, ref = 3, start = 4.5, sl = 1.1, lim1 = 4.5, lim2 = 7.5, main =  0.1)+  theme(axis.title.x = element_blank()) +
-  theme(axis.title.y = element_blank())
-# method ii
-p6.12 <- plot_it_3_6_mod1(g = "ENSMUSG00000067951", week3 = dds_obj_mod1[[1]], week6 = dds_obj_mod1[[2]], ref = 3, start = 4.5,  sl = 1.1, lim1 = 4.5, lim2 = 7.5, main3 = 0.1, number =paste("6: ", rowData(dds_method2["ENSMUSG00000067951",])[,2]))+  theme(axis.title.x = element_blank()) +
-  theme(axis.title.y = element_blank())
-
-# 7
-# method i
-p7.11 <- plot_it_3_6(g = "ENSMUSG00000028637", dds = dds_method2, ref = 3, start = 6.3,   sl = 1.1, lim1 = 6.3, lim2 = 8.2, main = 0.1)+ #+labs(x = "weeks", y = "")
-  theme(axis.title.x = element_blank()) +
-  theme(axis.title.y = element_blank())
-# method ii
-p7.12 <- plot_it_3_6_mod1(g = "ENSMUSG00000028637", week3 = dds_obj_mod1[[1]], week6 = dds_obj_mod1[[2]], ref = 3, start = 6.3,  sl = 1.1, lim1 = 6.3, lim2 = 8.2, main3 = 0.1, main6 = -0.1, number =paste("7: ", rowData(dds_method2["ENSMUSG00000028637",])[,2]))+# +labs(x = "weeks", y = "")
-  theme(axis.title.x = element_blank()) +
-  theme(axis.title.y = element_blank())
+ggsave(file = "../03_figures/01_main/fig6_scatter.jpeg", width = 25, height = 15, unit = "cm")
 
 
 
-# combining all plots
-plot_all <- ggarrange(p1.12, p1.11, p2.22, p2.21, p3.22, p3.21, p4.22, p4.21,
-                      p5.12, p5.11, p6.12, p6.11, p7.12, p7.11,
-                      ncol = 2, nrow = 7, common.legend = TRUE, legend="bottom")
 
-# add annotation
-annotate_figure(plot_all, fig.lab.size = 20,
-                top = text_grob("Method I             Method II", size = 25, face = "bold"),
-                left = text_grob("Log2(normalized counts)", rot = 90, size = 25, face = "bold"))
-ggsave("../03_figures/01_main/fig6_real_genes.eps", width = 15, height = 55, unit = "cm",
-       device = cairo_ps)
+# Table 3: GSEA or GO analyses -------------------------------------------------
 
-# GO analyses ------------------------------------------------------------------
-
-# GO analysis on up-regulated genes found by Method I
-# Interesting gene sets: Up-regulated DEGs by Method I
+# GO analysis on up-regulated genes found by
+#   - Method I
+#   - Method II
+#   - or the combination of the resulting two gene sets
+#
 # Gene universe: All genes (after filtering)
 
 
 
-# using method classic and top 1000 groups
+# Using package topGO and method classic
 if(file.exists("051_GO_res_classic_1000.RData")){
   load("051_GO_res_classic_1000.RData")
 } else {
   set.seed(1234)
+  # Upregulated DEGs by Method I
   GO_method1_up <- topGO_analysis(interesting = deg_mod_1_up, all_genes = rownames(dds_method1),
                                   methods = "classic", topNodes = TRUE, node_number = 1000)
 
   # Genes that are DEG by Method II and have a positive log2FC
-  # Note: res_mod2 already fitlered by log2FC and adj. p-value
+  # Note: res_mod2 already filtered by log2FC and adj. p-value
   deg_mod2_up <- rownames(res_mod2)[res_mod2$log2FoldChange > 0]
   GO_method2_up <- topGO_analysis(interesting = deg_mod2_up, all_genes = rownames(dds_method2),
                                   methods = "classic", topNodes = TRUE, node_number = 1000)
@@ -415,7 +437,8 @@ if(file.exists("051_GO_res_classic_1000.RData")){
                                       all_genes = unique(c(rownames(dds_method1), rownames(dds_method2))),
                                       methods = "classic", topNodes = TRUE, node_number = 1000)
 
-  # GO analysis on genes that are upregulated and only found by Method II
+  # GO analysis on genes that are upregulated and only found by Method I or II
+  # (Not used in the paper)
   GO_only_method2_up <- topGO_analysis(interesting = setdiff(deg_mod2_up, deg_mod_1_up), all_genes = rownames(dds_method2),
                                   methods = "classic", topNodes = TRUE, node_number = 1000)
   GO_only_method1_up <- topGO_analysis(interesting = setdiff(deg_mod_1_up, deg_mod2_up), all_genes = rownames(dds_method2),
@@ -426,79 +449,47 @@ if(file.exists("051_GO_res_classic_1000.RData")){
        file = "051_GO_res_classic_1000.RData")
 }
 
-# using method elim and top 1000 go groups
-if(file.exists("053_GO_res_elim_1000.RData")){
-  load("053_GO_res_elim_1000.RData")
-} else {
-  set.seed(1234)
-  GO_method1_up_elim <- topGO_analysis(interesting = deg_mod_1_up, all_genes = rownames(dds_method1),
-                                  methods = "elim", topNodes = TRUE, node_number = 1000)
-  
-  # Genes that are DEG by Method II and have a positive log2FC
-  # Note: res_mod2 already fitlered by log2FC and adj. p-value
-  deg_mod2_up <- rownames(res_mod2)[res_mod2$log2FoldChange > 0]
-  GO_method2_up_elim <- topGO_analysis(interesting = deg_mod2_up, all_genes = rownames(dds_method2),
-                                  methods = "elim", topNodes = TRUE, node_number = 1000)
-
-  # GO analysis on genes that are found by Method I, Method II or both (up-regulated)
-  GO_method1_or2_up_elim <- topGO_analysis(interesting = unique(c(deg_mod_1_up, deg_mod2_up)),
-                                      all_genes = unique(c(rownames(dds_method1), rownames(dds_method2))),
-                                      methods = "elim", topNodes = TRUE, node_number = 1000)
-
-  # GO analysis on genes that are upregulated and only found by Method II
-  GO_only_method2_up_elim <- topGO_analysis(interesting = setdiff(deg_mod2_up, deg_mod_1_up), all_genes = rownames(dds_method2),
-                                       methods = "elim", topNodes = TRUE, node_number = 1000)
-  GO_only_method1_up_elim <- topGO_analysis(interesting = setdiff(deg_mod_1_up, deg_mod2_up), all_genes = rownames(dds_method2),
-                                       methods = "elim", topNodes = TRUE, node_number = 1000)
-
-  save(GO_method1_up_elim, GO_method2_up_elim, GO_method1_or2_up_elim,
-       GO_only_method2_up_elim, GO_only_method1_up_elim, 
-       deg_mod2_up,
-       file = "053_GO_res_elim_1000.RData")
-}
-
-
-# using mehtod classic and all go groups
-if(file.exists("055_GO_res_classic_all.RData")){
-  load("055_GO_res_classic_all.RData")
-} else {
-  set.seed(1234)
-  GO_method1_up_all <- topGO_analysis(interesting = deg_mod_1_up, all_genes = rownames(dds_method1),
-                                  methods = "classic", topNodes = FALSE)
-  # Genes that are DEG by Method II and have a positive log2FC
-  # Note: res_mod2 already fitlered by log2FC and adj. p-value
-  deg_mod2_up <- rownames(res_mod2)[res_mod2$log2FoldChange > 0]
-  GO_method2_up_all <- topGO_analysis(interesting = deg_mod2_up, all_genes = rownames(dds_method2),
-                                  methods = "classic", topNodes = FALSE)
-  
-  # GO analysis on genes that are found by Method I, Method II or both (up-regulated)
-  # GO_method1_or2_up <- topGO_analysis(interesting = unique(c(deg_mod_1_up, deg_mod2_up)),
-  #                                     all_genes = unique(c(rownames(dds_method1), rownames(dds_method2))),
-  #                                     methods = "classic", topNodes = TRUE, node_number = 2000)
-  # 
-  # # GO analysis on genes that are upregulated and only found by Method II
-  # GO_only_method2_up <- topGO_analysis(interesting = setdiff(deg_mod2_up, deg_mod_1_up), all_genes = rownames(dds_method2),
-  #                                      methods = "classic", topNodes = TRUE, node_number = 2000)
-  # GO_only_method1_up <- topGO_analysis(interesting = setdiff(deg_mod_1_up, deg_mod2_up), all_genes = rownames(dds_method2),
-  #                                      methods = "classic", topNodes = TRUE, node_number = 1000)
-  
-  save(GO_method1_up_all, GO_method2_up_all, #GO_method1_or2_up,
-       #GO_only_method2_up, GO_only_method1_up,
-       deg_mod2_up,
-       file = "055_GO_res_classic_all.RData")
-}
-
-dot_plot_method1_up <- dot_plot(GO_method1_up$gen_table, 10, "Method I: Upregulated DEGs")
-dot_plot_method2_up <- dot_plot(GO_method2_up$gen_table, 10, "Method II: Upregulated DEGs")
-dot_plot_method1_or_2_up <- dot_plot(GO_method1_or2_up$gen_table, 10, "Method I or II: Upregulated DEGs")
-dot_plot_only_method2_up <- dot_plot(GO_only_method2_up$gen_table, 10, "Only Method II: Upregulated DEGs")
-dot_plot_only_method1_up <- dot_plot(GO_only_method1_up$gen_table, 10, "Only Method I: Upregulated DEGs")
-
-ggsave(dot_plot_method1_up, file = "052_dot_plot_method1_up.pdf", width = 12, height = 6)
-ggsave(dot_plot_method2_up, file = "053_dot_plot_method2_up.pdf", width = 12, height = 6)
-ggsave(dot_plot_method1_or_2_up, file = "054_dot_plot_method1_or_2_up.pdf", width = 12, height = 6)
-ggsave(dot_plot_only_method2_up, file = "055_dot_plot_only_method2_up.pdf", width = 12, height = 6)
-ggsave(dot_plot_only_method1_up, file = "056_dot_plot_only_method1_up.pdf", width = 12, height = 6)
+# # using mehtod classic and all go groups
+# if(file.exists("055_GO_res_classic_all.RData")){
+#   load("055_GO_res_classic_all.RData")
+# } else {
+#   set.seed(1234)
+#   GO_method1_up_all <- topGO_analysis(interesting = deg_mod_1_up, all_genes = rownames(dds_method1),
+#                                   methods = "classic", topNodes = FALSE)
+#   # Genes that are DEG by Method II and have a positive log2FC
+#   # Note: res_mod2 already fitlered by log2FC and adj. p-value
+#   deg_mod2_up <- rownames(res_mod2)[res_mod2$log2FoldChange > 0]
+#   GO_method2_up_all <- topGO_analysis(interesting = deg_mod2_up, all_genes = rownames(dds_method2),
+#                                   methods = "classic", topNodes = FALSE)
+#
+#   # GO analysis on genes that are found by Method I, Method II or both (up-regulated)
+#   # GO_method1_or2_up <- topGO_analysis(interesting = unique(c(deg_mod_1_up, deg_mod2_up)),
+#   #                                     all_genes = unique(c(rownames(dds_method1), rownames(dds_method2))),
+#   #                                     methods = "classic", topNodes = TRUE, node_number = 2000)
+#   #
+#   # # GO analysis on genes that are upregulated and only found by Method II
+#   # GO_only_method2_up <- topGO_analysis(interesting = setdiff(deg_mod2_up, deg_mod_1_up), all_genes = rownames(dds_method2),
+#   #                                      methods = "classic", topNodes = TRUE, node_number = 2000)
+#   # GO_only_method1_up <- topGO_analysis(interesting = setdiff(deg_mod_1_up, deg_mod2_up), all_genes = rownames(dds_method2),
+#   #                                      methods = "classic", topNodes = TRUE, node_number = 1000)
+#
+#   save(GO_method1_up_all, GO_method2_up_all, #GO_method1_or2_up,
+#        #GO_only_method2_up, GO_only_method1_up,
+#        deg_mod2_up,
+#        file = "055_GO_res_classic_all.RData")
+# }
+#
+# dot_plot_method1_up <- dot_plot(GO_method1_up$gen_table, 10, "Method I: Upregulated DEGs")
+# dot_plot_method2_up <- dot_plot(GO_method2_up$gen_table, 10, "Method II: Upregulated DEGs")
+# dot_plot_method1_or_2_up <- dot_plot(GO_method1_or2_up$gen_table, 10, "Method I or II: Upregulated DEGs")
+# dot_plot_only_method2_up <- dot_plot(GO_only_method2_up$gen_table, 10, "Only Method II: Upregulated DEGs")
+# dot_plot_only_method1_up <- dot_plot(GO_only_method1_up$gen_table, 10, "Only Method I: Upregulated DEGs")
+#
+# ggsave(dot_plot_method1_up, file = "052_dot_plot_method1_up.pdf", width = 12, height = 6)
+# ggsave(dot_plot_method2_up, file = "053_dot_plot_method2_up.pdf", width = 12, height = 6)
+# ggsave(dot_plot_method1_or_2_up, file = "054_dot_plot_method1_or_2_up.pdf", width = 12, height = 6)
+# ggsave(dot_plot_only_method2_up, file = "055_dot_plot_only_method2_up.pdf", width = 12, height = 6)
+# ggsave(dot_plot_only_method1_up, file = "056_dot_plot_only_method1_up.pdf", width = 12, height = 6)
 
 
 # table with classic
@@ -535,11 +526,11 @@ saveWorkbook(wb, "090_table3.xlsx")
 xtable(cbind(GO_method1_up_elim$gen_table[1:15, c("Term", "Fisher_adjust")] %>%
                mutate('Method I' = paste0(Term, " (", signif(Fisher_adjust, 3),")")) %>%
                dplyr::select('Method I'),
-             
+
              GO_method2_up_elim$gen_table[1:15, c("Term", "Fisher_adjust")] %>%
                mutate('Method II' = paste0(Term, " (", signif(Fisher_adjust, 3),")"))%>%
                dplyr::select('Method II'),
-             
+
              GO_method1_or2_up_elim$gen_table[1:15, c("Term", "Fisher_adjust")] %>%
                mutate('Method I or II' = paste0(Term, " (", signif(Fisher_adjust, 3),")"))%>%
                dplyr::select('Method I or II')))
@@ -640,19 +631,19 @@ xtable(GO_method1_up_all$gen_table %>% filter(GO.ID %in% intersect(
   # significant groups in Method I
   GO_method1_up_all$gen_table %>% filter(Fisher_adjust < 0.05) %>%
     select(GO.ID),
-  
+
   # not significant groups in Method II
   GO_method2_up_all$gen_table %>% filter(Fisher_adjust > 0.05) %>%
     select(GO.ID)
   )$GO.ID) %>% arrange(Fisher_adjust) %>% head(10))
-  
+
 
 # top 10 GO Groups method ii only
 xtable(GO_method2_up_all$gen_table %>% filter(GO.ID %in% intersect(
   # significant groups in Method II
   GO_method2_up_all$gen_table %>% filter(Fisher_adjust < 0.05) %>%
     select(GO.ID),
-  
+
   # not significant groups in Method II
   GO_method1_up_all$gen_table %>% filter(Fisher_adjust > 0.05) %>%
     select(GO.ID)
@@ -677,7 +668,7 @@ plot_GO_data <- data.frame("GO_group" = common_go, "method_i_p_values" = selecte
                            "method_ii_p_values" = selected_GO_method_2[selected_GO_method_2$GO.ID %in% common_go, 2])
 
 ggplot(plot_GO_data, aes(x = method_i_p_values, y = method_ii_p_values)) +
-  geom_point() + 
+  geom_point() +
   coord_fixed() +
   theme_classic() +
   geom_abline( intercept = 0, slope = 1) +
@@ -685,8 +676,9 @@ ggplot(plot_GO_data, aes(x = method_i_p_values, y = method_ii_p_values)) +
   ylab("p-value for GO-Group with Method II")
 ggsave("080_go_groups_pvalue.pdf")
 
-
-# Supplementary Figure 1 --------------------------------------------------------
+# ------------------------------------------------------------------------------
+# Supplementary Figure 1 -------------------------------------------------------
+# ------------------------------------------------------------------------------
 
 # object without filtering (50% threshold) the genes
 if(file.exists("060_dds_method2_no_filter.Rdata")){
@@ -700,14 +692,14 @@ if(file.exists("060_dds_method2_no_filter.Rdata")){
 # coefficient diet HDF vs SD
 plot_hist(gse = dds_method2_no_filter, "diet_HFD_vs_SD")  + ggtitle("Coefficient WD vs SD")
 
-ggsave(file = "../03_figures/02_supplement/fig1_hist_before_filter.eps", width = 5.5, height = 3.5)
+ggsave(file = "../03_figures/02_supplement/Supp_fig1_hist_before_filter.eps", width = 5.5, height = 3.5)
 
 # Supplementary Figure 2 --------------------------------------------------------
 
 # coefficient diet HDF vs SD
 plot_hist(gse = dds_method2, "diet_HFD_vs_SD") + ggtitle("Coefficient WD vs SD")
 
-ggsave(file = "../03_figures/02_supplement/fig2_hist_after_filter.eps", width = 5.5, height = 3.5)
+ggsave(file = "../03_figures/02_supplement/Supp_fig2_hist_after_filter.eps", width = 5.5, height = 3.5)
 
 # Supplementary Figure 3 --------------------------------------------------------
 
@@ -824,9 +816,9 @@ ggplot(df_p, aes(x = main, y = main_inter, col = col)) +
                      limits = c(-2,2))
 
 
-ggsave("../03_figures/02_supplement/fig3_scatter_annotated_W_p_shrink.eps", width = 25, height = 15, unit = "cm",
+ggsave("../03_figures/02_supplement/Supp_fig3_scatter_annotated_W_p_shrink.eps", width = 25, height = 15, unit = "cm",
        device = cairo_ps)
-ggsave("../03_figures/02_supplement/fig3_scatter_annotated_W_p_shrink.jpeg", width = 25, height = 15, unit = "cm")
+ggsave("../03_figures/02_supplement/Supp_fig3_scatter_annotated_W_p_shrink.jpeg", width = 25, height = 15, unit = "cm")
 
 
 

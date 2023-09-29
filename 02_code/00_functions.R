@@ -529,6 +529,7 @@ plot_it_3_6 <- function(g, dds, ref, point = T, start, s_arrow  = 2.5, s1 = 4, s
 
     # change level HFD to WD
     levels(log_count$diet)[levels(log_count$diet) == "HFD"] = "WD"
+    log_count$diet <- factor(log_count$diet, levels = c("SD", "WD"))
 
     # create column for plotting containing week and diet together
     log_count$index <- paste0(log_count$x, log_count$diet)[1:22]
@@ -711,6 +712,8 @@ plot_it_3_6_mod1 <- function(g, week3 = dds_obj_mod1[[1]], week6 = dds_obj_mod1[
 
   # change level HFD to WD
   levels(log_count$diet)[levels(log_count$diet) == "HFD"] = "WD"
+  log_count$diet <- factor(log_count$diet, levels = c("SD", "WD"))
+
   # create column for plotting containing week and diet together
   log_count$index <- paste0(log_count$x, log_count$diet)
 
@@ -1044,8 +1047,8 @@ topGO_analysis <- function(interesting, all_genes, methods = "elim", topNodes = 
   res <- sapply(methods,
                 function(x) runTest(go_data, algorithm = x, statistic = "fisher"))
 
-  
-  
+
+
   if(methods == "elim"){
     if(topNodes){
       res$gen_table <- GenTable(go_data,
@@ -1057,8 +1060,8 @@ topGO_analysis <- function(interesting, all_genes, methods = "elim", topNodes = 
                                 Fisher = res$elim,
                                 orderBy = "Fisher_elim", topNodes = length(res$elim@score))
     }
-    
-    
+
+
     res$gen_table$Fisher <- as.numeric(res$gen_table$Fisher)
     if(any(is.na(res$gen_table$Fisher))){
       res$gen_table$Fisher[is.na(res$gen_table$Fisher)] <- 1e-30
@@ -1066,8 +1069,8 @@ topGO_analysis <- function(interesting, all_genes, methods = "elim", topNodes = 
     ## adjust the p-values
     res$gen_table$Fisher_adjust <- p.adjust(res$gen_table$Fisher, method = "fdr")
   }
-  
-  
+
+
   if(methods == "classic"){
     if(topNodes){
       res$gen_table <- GenTable(go_data,
@@ -1078,8 +1081,8 @@ topGO_analysis <- function(interesting, all_genes, methods = "elim", topNodes = 
                                 Fisher = res$classic,
                                 orderBy = "Fisher_elim", topNodes = length(res$classic@score))
     }
-    
-    
+
+
     res$gen_table$Fisher <- as.numeric(res$gen_table$Fisher)
     if(any(is.na(res$gen_table$Fisher))){
       res$gen_table$Fisher[is.na(res$gen_table$Fisher)] <- 1e-30
@@ -1088,7 +1091,7 @@ topGO_analysis <- function(interesting, all_genes, methods = "elim", topNodes = 
     res$gen_table$Fisher_adjust <- p.adjust(res$gen_table$Fisher, method = "fdr")
   }
   return(res)
-  
+
 }
 
 ###############################################################################
